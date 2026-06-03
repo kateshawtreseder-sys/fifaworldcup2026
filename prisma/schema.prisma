@@ -1,0 +1,99 @@
+// Prisma schema for the World Cup 2026 family sweepstake.
+// Local dev uses SQLite; switch the provider/url for Postgres in production.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// A single sweepstake pool (one family game).
+model Pool {
+  id               String        @id @default(cuid())
+  slug             String        @unique
+  name             String
+  stakeAmount      Int // stored in minor units (pence)
+  currency         String        @default("GBP")
+  paymentLink      String? // organiser's Monzo.me / PayPal.me URL
+  status           String        @default("open") // open | drawn | active | finished
+  adminPasswordHash String
+  inviteToken      String        @unique
+  drawSeed         String?
+  scoringConfig    String // JSON blob of scoring weights
+  createdAt        DateTime      @default(now())
+
+  participants Participant[]
+  assignments  Assignment[]
+
+  @@index([inviteToken])
+}
+
+// Someone who has joined a pool.
+model Participant {
+  id        String       @id @default(cuid())
+  poolId    String
+  pool      Pool         @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  name      String
+  email     String?
+  paid      Boolean      @default(false)
+  paidAt    DateTime?
+  joinToken String       @unique // identifies this participant in their browser cookie
+  createdAt DateTime     @default(now())
+
+  assignments Assignment[]
+
+  @@index([poolId])
+}
+
+// A national team in the tournament (shared across pools).
+model Team {
+  id        String  @id @default(cuid())
+  fifaCode  String  @unique // e.g. "ENG"
+  name      String
+  groupName String // "A".."L"
+  flagEmoji String  @default("")
+
+  assignments Assignment[]
+  homeMatches Match[]      @relation("HomeTeam")
+  awayMatches Match[]      @relation("AwayTeam")
+  wonMatches  Match[]      @relation("WinnerTeam")
+}
+
+// Which team a participant owns after the draw.
+model Assignment {
+  id            String      @id @default(cuid())
+  poolId        String
+  pool          Pool        @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  participantId String
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  teamId        String
+  team          Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([poolId, teamId]) // a team is owned by at most one participant per pool
+  @@index([participantId])
+}
+
+// A tournament match (shared across pools; results drive every leaderboard).
+model Match {
+  id           String   @id @default(cuid())
+  externalId   String?  @unique // id from football-data.org for syncing
+  stage        String // group | R32 | R16 | QF | SF | final
+  groupName    String?
+  homeTeamId   String?
+  homeTeam     Team?    @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeamId   String?
+  awayTeam     Team?    @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  homeScore    Int?
+  awayScore    Int?
+  status       String   @default("scheduled") // scheduled | live | finished
+  kickoff      DateTime?
+  winnerTeamId String?
+  winnerTeam   Team?    @relation("WinnerTeam", fields: [winnerTeamId], references: [id])
+  manualEdit   Boolean  @default(false) // if true, API sync will not overwrite the score
+  updatedAt    DateTime @updatedAt
+
+  @@index([stage])
+}
