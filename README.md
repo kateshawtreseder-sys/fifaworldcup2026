@@ -54,10 +54,14 @@ A player's score is the sum across all their teams. Weights live in each pool's
 
 ## Run it locally
 
+Local dev uses the same Postgres database as production. The quickest way is to
+point `DATABASE_URL` at a free [Neon](https://neon.tech) database (you can use a
+separate Neon branch/db for dev).
+
 ```bash
 npm install
-cp .env.example .env          # then edit .env (see below)
-npx prisma migrate dev        # creates the SQLite db
+cp .env.example .env          # then edit .env with your Neon DATABASE_URL
+npx prisma db push            # creates the tables
 npm run seed                  # loads the 48 teams + group fixtures
 npm run dev                   # http://localhost:3000
 ```
@@ -94,10 +98,17 @@ Then open <http://localhost:3000>, create a sweepstake, and you're away.
 
 ## Deploy (Vercel + Postgres)
 
-1. Create a Postgres database (e.g. **Neon** free tier) and set `DATABASE_URL`.
-2. In `prisma/schema.prisma`, change the datasource `provider` to `postgresql`.
-3. Set the env vars above in Vercel (and a `CRON_SECRET` for the cron route).
-4. Deploy. Run `npx prisma migrate deploy && npm run seed` against the prod DB.
+No command line needed — the build creates the database tables automatically
+(`prisma db push` runs as part of `npm run build`).
+
+1. Create a free Postgres database (e.g. **Neon**) and copy its connection string.
+2. Import the repo into **Vercel** and set the environment variables above
+   (`DATABASE_URL`, `APP_SECRET`, `NEXT_PUBLIC_BASE_URL`, `SYNC_SECRET`, and
+   optionally `FOOTBALL_DATA_API_TOKEN` and a `CRON_SECRET`).
+3. Deploy. The build connects to the database and creates the tables.
+4. Load the teams once by visiting `https://your-app.vercel.app/api/setup?key=YOUR_SYNC_SECRET`.
+
+That's it — open the site and create your sweepstake.
 
 ## Security
 
