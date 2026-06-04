@@ -4,6 +4,9 @@ import { getPoolContext, getCurrentParticipant } from "@/lib/loaders";
 import { buildLeaderboard, parseScoring } from "@/lib/scoring";
 import { formatMoney } from "@/lib/format";
 import { PoolNav } from "@/components/PoolNav";
+import { Announcements } from "@/components/Announcements";
+import { AutoRefresh } from "@/components/AutoRefresh";
+import { claimPaid } from "../../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -38,11 +41,12 @@ export default async function MePage({
     );
   }
 
-  const [assignments, matches, teams, participants] = await Promise.all([
+  const [assignments, matches, teams, participants, announcements] = await Promise.all([
     prisma.assignment.findMany({ where: { poolId: pool.id } }),
     prisma.match.findMany(),
     prisma.team.findMany(),
     prisma.participant.findMany({ where: { poolId: pool.id } }),
+    prisma.announcement.findMany({ where: { poolId: pool.id }, orderBy: { createdAt: "desc" }, take: 3 }),
   ]);
   const teamById = new Map(teams.map((t) => [t.id, t]));
 
@@ -55,30 +59,61 @@ export default async function MePage({
   const myStanding = standings.find((s) => s.participantId === me.id);
   const rank = standings.findIndex((s) => s.participantId === me.id) + 1;
 
+  const stake = formatMoney(pool.stakeAmount, pool.currency);
+
   return (
     <main>
       <PoolNav slug={slug} name={pool.name} isAdmin={admin} />
+      <AutoRefresh seconds={60} />
+      <Announcements items={announcements} />
 
       <div className="card mb-4">
         <h1 className="text-lg font-semibold">Hi {me.name} 👋</h1>
-        <div className="mt-2 flex items-center gap-2 text-sm">
-          <span
-            className={`rounded-full px-2 py-1 text-xs font-semibold ${
-              me.paid ? "bg-pitch-100 text-pitch-800" : "bg-amber-100 text-amber-800"
-            }`}
-          >
-            {me.paid ? "Paid ✓" : "Stake not paid yet"}
-          </span>
-          {!me.paid && pool.paymentLink && (
-            <a href={pool.paymentLink} target="_blank" rel="noopener noreferrer" className="btn-primary">
-              Pay {formatMoney(pool.stakeAmount, pool.currency)} →
-            </a>
-          )}
-        </div>
-        {!me.paid && !pool.paymentLink && (
-          <p className="mt-2 text-xs text-slate-500">
-            Pay your {formatMoney(pool.stakeAmount, pool.currency)} stake to the organiser.
+
+        {me.paid ? (
+          <p className="mt-2">
+            <span className="rounded-full bg-pitch-100 px-3 py-1 text-sm font-semibold text-pitch-800">
+              Stake paid ✓
+            </span>
           </p>
+        ) : me.paidClaimed ? (
+          <div className="mt-2 rounded-lg bg-blue-50 p-3 text-sm text-blue-900">
+            ✋ Thanks — you&apos;ve marked your {stake} stake as paid. Waiting for the organiser to
+            confirm it. {pool.paymentLink && "If you haven't actually sent it yet, tap below."}
+            {pool.paymentLink && (
+              <div className="mt-2">
+                <a href={pool.paymentLink} target="_blank" rel="noopener noreferrer" className="btn-secondary">
+                  Open payment link ↗
+                </a>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="mt-2 rounded-lg bg-amber-50 p-3">
+            <p className="text-sm font-medium text-amber-900">
+              Your {stake} stake isn&apos;t paid yet.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {pool.paymentLink ? (
+                <a href={pool.paymentLink} target="_blank" rel="noopener noreferrer" className="btn-primary">
+                  💳 Pay {stake} now
+                </a>
+              ) : (
+                <span className="text-xs text-slate-600">
+                  Pay your {stake} to the organiser, then tap “I&apos;ve paid”.
+                </span>
+              )}
+              <form action={claimPaid.bind(null, slug)}>
+                <button className="btn-secondary">I&apos;ve paid ✓</button>
+              </form>
+            </div>
+            {pool.paymentLink && (
+              <p className="mt-2 text-xs text-slate-500">
+                Tap “Pay now” to open the payment link, then tap “I&apos;ve paid” so the organiser
+                can confirm you.
+              </p>
+            )}
+          </div>
         )}
       </div>
 

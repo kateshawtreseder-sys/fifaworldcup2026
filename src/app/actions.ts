@@ -11,6 +11,7 @@ import {
   revokeAdmin,
   isAdmin,
   setParticipant,
+  getParticipantToken,
 } from "@/lib/auth";
 import { slugify } from "@/lib/format";
 import { DEFAULT_SCORING } from "@/lib/scoring";
@@ -120,13 +121,35 @@ export async function joinPool(inviteToken: string, formData: FormData) {
 
 export async function setPaid(slug: string, participantId: string, paid: boolean) {
   const pool = await requireAdmin(slug);
+  // Confirming clears the pending "I've paid" claim; un-paying clears everything.
   await prisma.participant.update({
     where: { id: participantId },
-    data: { paid, paidAt: paid ? new Date() : null },
+    data: {
+      paid,
+      paidAt: paid ? new Date() : null,
+      paidClaimed: false,
+      paidClaimedAt: null,
+    },
   });
   if (await prisma.participant.findFirst({ where: { id: participantId, poolId: pool.id } })) {
     revalidatePath(`/${slug}/participants`);
   }
+}
+
+// Guest taps "I've paid" — flags them as awaiting the organiser's confirmation.
+export async function claimPaid(slug: string) {
+  const token = await getParticipantToken(slug);
+  if (!token) throw new Error("We don't recognise you in this sweepstake.");
+  const participant = await prisma.participant.findUnique({ where: { joinToken: token } });
+  if (!participant) throw new Error("Participant not found");
+  if (!participant.paid) {
+    await prisma.participant.update({
+      where: { id: participant.id },
+      data: { paidClaimed: true, paidClaimedAt: new Date() },
+    });
+  }
+  revalidatePath(`/${slug}/me`);
+  revalidatePath(`/${slug}/participants`);
 }
 
 export async function removeParticipant(slug: string, participantId: string) {
@@ -221,4 +244,26 @@ export async function syncNow(slug: string) {
   await syncFromFootballData();
   revalidatePath(`/${slug}/admin/results`);
   revalidatePath(`/${slug}/leaderboard`);
+}
+
+// --- Announcements ---
+
+export async function postAnnouncement(slug: string, formData: FormData) {
+  const pool = await requireAdmin(slug);
+  const message = String(formData.get("message") ?? "").trim();
+  if (!message) return;
+  await prisma.announcement.create({ data: { poolId: pool.id, message: message.slice(0, 500) } });
+  revalidatePath(`/${slug}/admin`);
+  revalidatePath(`/${slug}/leaderboard`);
+  revalidatePath(`/${slug}/me`);
+  revalidatePath(`/${slug}`);
+}
+
+export async function deleteAnnouncement(slug: string, id: string) {
+  const pool = await requireAdmin(slug);
+  await prisma.announcement.deleteMany({ where: { id, poolId: pool.id } });
+  revalidatePath(`/${slug}/admin`);
+  revalidatePath(`/${slug}/leaderboard`);
+  revalidatePath(`/${slug}/me`);
+  revalidatePath(`/${slug}`);
 }

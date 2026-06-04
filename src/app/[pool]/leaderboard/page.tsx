@@ -4,8 +4,25 @@ import { buildLeaderboard, parseScoring } from "@/lib/scoring";
 import { STAGE_LABELS } from "@/lib/format";
 import { PoolNav } from "@/components/PoolNav";
 import { AutoRefresh } from "@/components/AutoRefresh";
+import { Announcements } from "@/components/Announcements";
+import { LeaderboardView, type PlayerRow } from "@/components/LeaderboardView";
 
 export const dynamic = "force-dynamic";
+
+// Furthest knockout round a team reached, as a friendly label.
+const STAGE_RANK = ["R32", "R16", "QF", "SF", "final"];
+function furthestStage(stages: string[]): string {
+  let best = "";
+  let bestIdx = -1;
+  for (const s of stages) {
+    const idx = STAGE_RANK.indexOf(s);
+    if (idx > bestIdx) {
+      bestIdx = idx;
+      best = s;
+    }
+  }
+  return best ? STAGE_LABELS[best] ?? best : "";
+}
 
 export default async function LeaderboardPage({
   params,
@@ -16,11 +33,12 @@ export default async function LeaderboardPage({
   const { pool, admin } = await getPoolContext(slug);
   const me = await getCurrentParticipant(slug, pool.id);
 
-  const [participants, assignments, matches, teams] = await Promise.all([
+  const [participants, assignments, matches, teams, announcements] = await Promise.all([
     prisma.participant.findMany({ where: { poolId: pool.id } }),
     prisma.assignment.findMany({ where: { poolId: pool.id } }),
     prisma.match.findMany(),
     prisma.team.findMany(),
+    prisma.announcement.findMany({ where: { poolId: pool.id }, orderBy: { createdAt: "desc" }, take: 3 }),
   ]);
   const teamById = new Map(teams.map((t) => [t.id, t]));
 
@@ -31,10 +49,26 @@ export default async function LeaderboardPage({
     cfg: parseScoring(pool.scoringConfig),
   });
 
-  const drawn = pool.status !== "open";
-  const medals = ["🥇", "🥈", "🥉"];
+  const rows: PlayerRow[] = standings.map((s) => ({
+    participantId: s.participantId,
+    name: s.name,
+    points: s.points,
+    isMe: me?.id === s.participantId,
+    teams: s.teams.map((t) => {
+      const team = teamById.get(t.teamId);
+      return {
+        name: team?.name ?? "?",
+        flag: team?.flagEmoji ?? "",
+        points: t.points,
+        champion: t.champion,
+        eliminated: t.eliminated,
+        reached: furthestStage(t.reachedStages),
+      };
+    }),
+  }));
 
-  // Recent finished results for context.
+  const drawn = pool.status !== "open";
+
   const recent = matches
     .filter((m) => m.status === "finished")
     .sort((a, b) => +b.updatedAt - +a.updatedAt)
@@ -44,8 +78,10 @@ export default async function LeaderboardPage({
     <main>
       <PoolNav slug={slug} name={pool.name} isAdmin={admin} />
       <AutoRefresh seconds={60} />
+      <Announcements items={announcements} />
 
-      <h1 className="mb-4 text-xl font-bold">🏆 Leaderboard</h1>
+      <h1 className="mb-1 text-xl font-bold">🏆 Leaderboard</h1>
+      <p className="mb-4 text-xs text-slate-500">Tap a player to see how their teams are doing.</p>
 
       {!drawn ? (
         <div className="card text-center text-sm text-slate-500">
@@ -53,38 +89,7 @@ export default async function LeaderboardPage({
           appear here and update as matches are played.
         </div>
       ) : (
-        <ol className="space-y-2">
-          {standings.map((s, i) => {
-            const isMe = me?.id === s.participantId;
-            return (
-              <li
-                key={s.participantId}
-                className={`card ${isMe ? "ring-2 ring-pitch-600" : ""}`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="w-7 text-center text-lg font-bold text-slate-500">
-                      {medals[i] ?? i + 1}
-                    </span>
-                    <div>
-                      <p className="font-semibold">
-                        {s.name}
-                        {isMe && <span className="ml-2 text-xs text-pitch-700">(you)</span>}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        {s.teams
-                          .map((t) => teamById.get(t.teamId)?.flagEmoji)
-                          .filter(Boolean)
-                          .join(" ")}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-xl font-bold text-pitch-800">{s.points}</span>
-                </div>
-              </li>
-            );
-          })}
-        </ol>
+        <LeaderboardView rows={rows} />
       )}
 
       {recent.length > 0 && (

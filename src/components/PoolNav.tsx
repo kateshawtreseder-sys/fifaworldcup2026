@@ -23,14 +23,14 @@ export function PoolNav({
         </Link>
         {isAdmin && (
           <>
+            <Link href={`/${slug}/admin`} className="btn-secondary">
+              🛠️ Organiser
+            </Link>
             <Link href={`/${slug}/invite`} className="btn-secondary">
               📨 Invite
             </Link>
             <Link href={`/${slug}/participants`} className="btn-secondary">
               💷 Players &amp; pay
-            </Link>
-            <Link href={`/${slug}/draw`} className="btn-secondary">
-              🎲 Draw
             </Link>
             <Link href={`/${slug}/admin/results`} className="btn-secondary">
               📊 Results

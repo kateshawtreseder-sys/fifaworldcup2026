@@ -60,6 +60,7 @@ export type TeamBreakdown = {
   draws: number;
   reachedStages: string[];
   champion: boolean;
+  eliminated: boolean; // lost a finished knockout match
 };
 
 // Points earned by a single team across all its matches.
@@ -74,6 +75,7 @@ export function pointsForTeam(
   let draws = 0;
   const reachedStages = new Set<string>();
   let champion = false;
+  let eliminated = false;
 
   for (const m of matches) {
     const isHome = m.homeTeamId === teamId;
@@ -84,6 +86,11 @@ export function pointsForTeam(
     if (m.stage in STAGE_BONUS) reachedStages.add(m.stage);
 
     if (m.status !== "finished") continue;
+
+    // Losing a finished knockout match knocks the team out.
+    if (m.stage in STAGE_BONUS && m.winnerTeamId && m.winnerTeamId !== teamId) {
+      eliminated = true;
+    }
     const scored = (isHome ? m.homeScore : m.awayScore) ?? 0;
     const conceded = (isHome ? m.awayScore : m.homeScore) ?? 0;
 
@@ -116,6 +123,7 @@ export function pointsForTeam(
     draws,
     reachedStages: [...reachedStages],
     champion,
+    eliminated: eliminated && !champion,
   };
 }
 

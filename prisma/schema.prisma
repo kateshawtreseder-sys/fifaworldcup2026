@@ -25,8 +25,9 @@ model Pool {
   scoringConfig    String // JSON blob of scoring weights
   createdAt        DateTime      @default(now())
 
-  participants Participant[]
-  assignments  Assignment[]
+  participants  Participant[]
+  assignments   Assignment[]
+  announcements Announcement[]
 
   @@index([inviteToken])
 }
@@ -36,12 +37,14 @@ model Participant {
   id        String       @id @default(cuid())
   poolId    String
   pool      Pool         @relation(fields: [poolId], references: [id], onDelete: Cascade)
-  name      String
-  email     String?
-  paid      Boolean      @default(false)
-  paidAt    DateTime?
-  joinToken String       @unique // identifies this participant in their browser cookie
-  createdAt DateTime     @default(now())
+  name          String
+  email         String?
+  paid          Boolean      @default(false) // confirmed by the organiser
+  paidAt        DateTime?
+  paidClaimed   Boolean      @default(false) // guest tapped "I've paid", awaiting confirmation
+  paidClaimedAt DateTime?
+  joinToken     String       @unique // identifies this participant in their browser cookie
+  createdAt     DateTime     @default(now())
 
   assignments Assignment[]
 
@@ -96,4 +99,15 @@ model Match {
   updatedAt    DateTime @updatedAt
 
   @@index([stage])
+}
+
+// Organiser announcement shown to everyone on the leaderboard / their teams page.
+model Announcement {
+  id        String   @id @default(cuid())
+  poolId    String
+  pool      Pool     @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  message   String
+  createdAt DateTime @default(now())
+
+  @@index([poolId])
 }
