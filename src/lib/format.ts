@@ -27,3 +27,11 @@ export const STAGE_LABELS: Record<string, string> = {
   SF: "Semi-final",
   final: "Final",
 };
+
+// Ensure a user-entered link is treated as an external URL. Without a scheme,
+// browsers treat e.g. "monzo.me/x" as a relative path on our own site.
+export function externalUrl(url: string | null | undefined): string {
+  if (!url) return "";
+  const trimmed = url.trim();
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+}

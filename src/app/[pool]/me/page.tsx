@@ -2,7 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getPoolContext, getCurrentParticipant } from "@/lib/loaders";
 import { buildLeaderboard, parseScoring } from "@/lib/scoring";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, externalUrl } from "@/lib/format";
 import { PoolNav } from "@/components/PoolNav";
 import { Announcements } from "@/components/Announcements";
 import { AutoRefresh } from "@/components/AutoRefresh";
@@ -82,7 +82,7 @@ export default async function MePage({
             confirm it. {pool.paymentLink && "If you haven't actually sent it yet, tap below."}
             {pool.paymentLink && (
               <div className="mt-2">
-                <a href={pool.paymentLink} target="_blank" rel="noopener noreferrer" className="btn-secondary">
+                <a href={externalUrl(pool.paymentLink)} target="_blank" rel="noopener noreferrer" className="btn-secondary">
                   Open payment link ↗
                 </a>
               </div>
@@ -95,7 +95,7 @@ export default async function MePage({
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
               {pool.paymentLink ? (
-                <a href={pool.paymentLink} target="_blank" rel="noopener noreferrer" className="btn-primary">
+                <a href={externalUrl(pool.paymentLink)} target="_blank" rel="noopener noreferrer" className="btn-primary">
                   💳 Pay {stake} now
                 </a>
               ) : (

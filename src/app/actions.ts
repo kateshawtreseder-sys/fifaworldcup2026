@@ -13,7 +13,7 @@ import {
   setParticipant,
   getParticipantToken,
 } from "@/lib/auth";
-import { slugify } from "@/lib/format";
+import { slugify, externalUrl } from "@/lib/format";
 import { DEFAULT_SCORING } from "@/lib/scoring";
 import { runDraw, newSeed } from "@/lib/draw";
 import { syncFromFootballData } from "@/lib/football-data";
@@ -35,7 +35,7 @@ export async function createPool(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const stakePounds = Number(formData.get("stake") ?? 0);
   const password = String(formData.get("password") ?? "");
-  const paymentLink = String(formData.get("paymentLink") ?? "").trim() || null;
+  const paymentLink = externalUrl(String(formData.get("paymentLink") ?? "")) || null;
 
   if (!name || password.length < 4 || !(stakePounds > 0)) {
     throw new Error("Please provide a name, a stake, and a password of at least 4 characters.");
@@ -68,7 +68,7 @@ export async function createPool(formData: FormData) {
 export async function updatePoolSettings(slug: string, formData: FormData) {
   const pool = await requireAdmin(slug);
   const stakePounds = Number(formData.get("stake") ?? 0);
-  const paymentLink = String(formData.get("paymentLink") ?? "").trim() || null;
+  const paymentLink = externalUrl(String(formData.get("paymentLink") ?? "")) || null;
   await prisma.pool.update({
     where: { id: pool.id },
     data: {

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getPoolContext } from "@/lib/loaders";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, externalUrl } from "@/lib/format";
 import { PoolNav } from "@/components/PoolNav";
 import { setPaid, removeParticipant } from "../../actions";
 
@@ -35,7 +35,7 @@ export default async function ParticipantsPage({
           </p>
         </div>
         {pool.paymentLink && (
-          <a href={pool.paymentLink} target="_blank" rel="noopener noreferrer" className="btn-secondary">
+          <a href={externalUrl(pool.paymentLink)} target="_blank" rel="noopener noreferrer" className="btn-secondary">
             Open payment link ↗
           </a>
         )}
