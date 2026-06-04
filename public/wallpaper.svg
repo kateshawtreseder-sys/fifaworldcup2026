@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="glow" cx="35%" cy="40%" r="75%">
+      <stop offset="0%" stop-color="#1b3a2a"/>
+      <stop offset="100%" stop-color="#070b16"/>
+    </radialGradient>
+    <filter id="blur" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="90"/>
+    </filter>
+  </defs>
+
+  <!-- deep base -->
+  <rect width="1600" height="1000" fill="url(#glow)"/>
+
+  <!-- vibrant blurred colour blobs in the WC26 palette -->
+  <g filter="url(#blur)" opacity="0.85">
+    <circle cx="260" cy="240" r="240" fill="#e11d2a"/>
+    <circle cx="560" cy="620" r="280" fill="#1f6feb"/>
+    <circle cx="180" cy="760" r="220" fill="#16a34a"/>
+    <circle cx="820" cy="200" r="200" fill="#f59e0b"/>
+    <circle cx="980" cy="760" r="240" fill="#7c3aed"/>
+    <circle cx="520" cy="120" r="160" fill="#06b6d4"/>
+  </g>
+
+  <!-- energetic radiating lines -->
+  <g stroke="#ffffff" stroke-width="2" opacity="0.06">
+    <line x1="-200" y1="1000" x2="900" y2="-200"/>
+    <line x1="-100" y1="1000" x2="1000" y2="-200"/>
+    <line x1="0"    y1="1000" x2="1100" y2="-200"/>
+    <line x1="100"  y1="1000" x2="1200" y2="-200"/>
+    <line x1="200"  y1="1000" x2="1300" y2="-200"/>
+    <line x1="300"  y1="1000" x2="1400" y2="-200"/>
+  </g>
+
+  <!-- subtle vignette to keep things readable -->
+  <rect width="1600" height="1000" fill="#000000" opacity="0.18"/>
+</svg>

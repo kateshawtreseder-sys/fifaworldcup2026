@@ -3,9 +3,9 @@ import { createPool } from "./actions";
 export default function HomePage() {
   return (
     <main className="space-y-6">
-      <header className="text-center">
+      <header>
         <div className="text-4xl">⚽🏆</div>
-        <h1 className="mt-2 text-2xl font-bold text-pitch-900">
+        <h1 className="mt-2 text-3xl font-extrabold brand-gradient">
           World Cup 2026 Sweepstake
         </h1>
         <p className="mt-1 text-sm text-slate-600">

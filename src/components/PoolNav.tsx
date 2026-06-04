@@ -11,7 +11,7 @@ export function PoolNav({
 }) {
   return (
     <header className="mb-6 border-b border-slate-200 pb-4">
-      <Link href={`/${slug}`} className="text-lg font-bold text-pitch-900">
+      <Link href={`/${slug}`} className="text-xl font-extrabold brand-gradient">
         ⚽ {name}
       </Link>
       <nav className="mt-3 flex flex-wrap gap-2 text-sm">

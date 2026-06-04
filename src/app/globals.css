@@ -7,7 +7,8 @@
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply text-slate-900 antialiased;
+  background-color: #070b16; /* fallback behind the wallpaper */
 }
 
 @layer components {
@@ -15,10 +16,10 @@ body {
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:opacity-50;
   }
   .btn-primary {
-    @apply btn bg-pitch-700 text-white hover:bg-pitch-800;
+    @apply btn bg-pitch-700 text-white shadow-sm hover:bg-pitch-800 active:scale-[0.98];
   }
   .btn-secondary {
-    @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-100;
+    @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 active:scale-[0.98];
   }
   .card {
     @apply rounded-xl border border-slate-200 bg-white p-5 shadow-sm;
@@ -28,5 +29,9 @@ body {
   }
   .label {
     @apply mb-1 block text-sm font-medium text-slate-700;
+  }
+  /* Colourful brand wordmark for headings */
+  .brand-gradient {
+    @apply bg-gradient-to-r from-pitch-700 via-blue-600 to-red-600 bg-clip-text text-transparent;
   }
 }
