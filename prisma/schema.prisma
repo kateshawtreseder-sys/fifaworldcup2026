@@ -39,6 +39,7 @@ model Participant {
   pool      Pool         @relation(fields: [poolId], references: [id], onDelete: Cascade)
   name          String
   email         String?
+  passwordHash  String? // set when a guest creates an account; lets them log back in
   paid          Boolean      @default(false) // confirmed by the organiser
   paidAt        DateTime?
   paidClaimed   Boolean      @default(false) // guest tapped "I've paid", awaiting confirmation
@@ -48,6 +49,7 @@ model Participant {
 
   assignments Assignment[]
 
+  @@unique([poolId, email])
   @@index([poolId])
 }
 

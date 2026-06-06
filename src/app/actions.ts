@@ -11,6 +11,7 @@ import {
   revokeAdmin,
   isAdmin,
   setParticipant,
+  clearParticipant,
   getParticipantToken,
 } from "@/lib/auth";
 import { slugify, externalUrl } from "@/lib/format";
@@ -103,18 +104,53 @@ export async function adminLogout(slug: string) {
 export async function joinPool(inviteToken: string, formData: FormData) {
   const pool = await prisma.pool.findUnique({ where: { inviteToken } });
   if (!pool) throw new Error("Invite not found");
-  if (pool.status !== "open") throw new Error("This sweepstake is closed to new joiners.");
+  if (pool.status !== "open") redirect(`/join/${inviteToken}?error=closed`);
 
   const name = String(formData.get("name") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim() || null;
-  if (!name) throw new Error("Please enter your name.");
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const password = String(formData.get("password") ?? "");
+  if (!name || !email) redirect(`/join/${inviteToken}?error=missing`);
+  if (password.length < 4) redirect(`/join/${inviteToken}?error=shortpass`);
+
+  // If this email already joined, log them in (if the password matches).
+  const existing = await prisma.participant.findUnique({
+    where: { poolId_email: { poolId: pool.id, email } },
+  });
+  if (existing) {
+    if (existing.passwordHash && (await checkPassword(password, existing.passwordHash))) {
+      await setParticipant(pool.slug, existing.joinToken);
+      redirect(`/${pool.slug}/me`);
+    }
+    redirect(`/join/${inviteToken}?error=exists`);
+  }
 
   const participant = await prisma.participant.create({
-    data: { poolId: pool.id, name, email, joinToken: token() },
+    data: { poolId: pool.id, name, email, passwordHash: await hashPassword(password), joinToken: token() },
   });
 
   await setParticipant(pool.slug, participant.joinToken);
   redirect(`/${pool.slug}/me`);
+}
+
+// Existing guest logs back in with their email + password (any device).
+export async function participantLogin(slug: string, formData: FormData) {
+  const pool = await prisma.pool.findUnique({ where: { slug } });
+  if (!pool) throw new Error("Pool not found");
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const password = String(formData.get("password") ?? "");
+  const p = email
+    ? await prisma.participant.findUnique({ where: { poolId_email: { poolId: pool.id, email } } })
+    : null;
+  if (!p || !p.passwordHash || !(await checkPassword(password, p.passwordHash))) {
+    redirect(`/${slug}/login?error=bad`);
+  }
+  await setParticipant(slug, p.joinToken);
+  redirect(`/${slug}/me`);
+}
+
+export async function participantLogout(slug: string) {
+  await clearParticipant(slug);
+  redirect(`/${slug}/login`);
 }
 
 // --- Payments tracking ---

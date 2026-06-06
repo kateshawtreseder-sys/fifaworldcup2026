@@ -54,14 +54,28 @@ export default async function PoolHome({
         </div>
       </div>
 
-      {!me && pool.status === "open" && (
+      {me ? (
         <div className="card mb-4 bg-pitch-50">
           <p className="text-sm">
-            Haven&apos;t joined yet?{" "}
-            <Link href={`/join/${pool.inviteToken}`} className="font-semibold text-pitch-700 underline">
-              Join the sweepstake →
+            Logged in as <strong>{me.name}</strong>.{" "}
+            <Link href={`/${slug}/me`} className="font-semibold text-pitch-700 underline">
+              Your teams →
             </Link>
           </p>
+        </div>
+      ) : (
+        <div className="card mb-4 bg-pitch-50">
+          <p className="mb-2 text-sm font-medium">Are you a player?</p>
+          <div className="flex flex-wrap gap-2">
+            <Link href={`/${slug}/login`} className="btn-primary">
+              Log in
+            </Link>
+            {pool.status === "open" && (
+              <Link href={`/join/${pool.inviteToken}`} className="btn-secondary">
+                Create an account &amp; join
+              </Link>
+            )}
+          </div>
         </div>
       )}
 

@@ -12,6 +12,8 @@ import crypto from "crypto";
 import bcrypt from "bcryptjs";
 
 const SECRET = process.env.APP_SECRET ?? "dev-insecure-secret";
+const SECURE = process.env.NODE_ENV === "production";
+const YEAR = 60 * 60 * 24 * 365;
 
 function sign(value: string): string {
   const mac = crypto.createHmac("sha256", SECRET).update(value).digest("base64url");
@@ -48,8 +50,9 @@ export async function grantAdmin(slug: string, poolId: string) {
   store.set(adminCookie(slug), sign(poolId), {
     httpOnly: true,
     sameSite: "lax",
+    secure: SECURE,
     path: "/",
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: YEAR,
   });
 }
 
@@ -72,9 +75,15 @@ export async function setParticipant(slug: string, joinToken: string) {
   store.set(pidCookie(slug), sign(joinToken), {
     httpOnly: true,
     sameSite: "lax",
+    secure: SECURE,
     path: "/",
-    maxAge: 60 * 60 * 24 * 90,
+    maxAge: YEAR,
   });
+}
+
+export async function clearParticipant(slug: string) {
+  const store = await cookies();
+  store.delete(pidCookie(slug));
 }
 
 export async function getParticipantToken(slug: string): Promise<string | null> {

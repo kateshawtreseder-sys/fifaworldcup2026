@@ -6,7 +6,7 @@ import { formatMoney, externalUrl } from "@/lib/format";
 import { PoolNav } from "@/components/PoolNav";
 import { Announcements } from "@/components/Announcements";
 import { AutoRefresh } from "@/components/AutoRefresh";
-import { claimPaid } from "../../actions";
+import { claimPaid, participantLogout } from "../../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -25,17 +25,18 @@ export default async function MePage({
         <PoolNav slug={slug} name={pool.name} isAdmin={admin} />
         <div className="card text-center">
           <p className="text-sm text-slate-600">
-            We don&apos;t recognise you in this sweepstake on this device.
+            You&apos;re not logged in on this device.
           </p>
-          {pool.status === "open" ? (
-            <Link href={`/join/${pool.inviteToken}`} className="btn-primary mt-3">
-              Join now →
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            <Link href={`/${slug}/login`} className="btn-primary">
+              Log in →
             </Link>
-          ) : (
-            <p className="mt-2 text-xs text-slate-500">
-              The draw is done, so joining is closed. Ask the organiser if you should be in.
-            </p>
-          )}
+            {pool.status === "open" && (
+              <Link href={`/join/${pool.inviteToken}`} className="btn-secondary">
+                Create an account
+              </Link>
+            )}
+          </div>
         </div>
       </main>
     );
@@ -68,7 +69,12 @@ export default async function MePage({
       <Announcements items={announcements} />
 
       <div className="card mb-4">
-        <h1 className="text-lg font-semibold">Hi {me.name} 👋</h1>
+        <div className="flex items-start justify-between">
+          <h1 className="text-lg font-semibold">Hi {me.name} 👋</h1>
+          <form action={participantLogout.bind(null, slug)}>
+            <button className="text-xs text-slate-400 underline">Log out</button>
+          </form>
+        </div>
 
         {me.paid ? (
           <p className="mt-2">
