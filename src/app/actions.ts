@@ -119,8 +119,8 @@ export async function joinPool(inviteToken: string, formData: FormData) {
   if (password.length < 4) redirect(`/join/${inviteToken}?error=shortpass`);
 
   // If this email already joined, log them in (if the password matches).
-  const existing = await prisma.participant.findUnique({
-    where: { poolId_email: { poolId: pool.id, email } },
+  const existing = await prisma.participant.findFirst({
+    where: { poolId: pool.id, email },
   });
   if (existing) {
     if (existing.passwordHash && (await checkPassword(password, existing.passwordHash))) {
@@ -145,7 +145,7 @@ export async function participantLogin(slug: string, formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   const p = email
-    ? await prisma.participant.findUnique({ where: { poolId_email: { poolId: pool.id, email } } })
+    ? await prisma.participant.findFirst({ where: { poolId: pool.id, email } })
     : null;
   if (!p || !p.passwordHash || !(await checkPassword(password, p.passwordHash))) {
     redirect(`/${slug}/login?error=bad`);
