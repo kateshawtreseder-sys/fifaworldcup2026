@@ -131,16 +131,18 @@ export default async function PoolHome({
         <div className="card">
           <h2 className="mb-1 font-semibold">Organiser sign in</h2>
           <p className="mb-3 text-sm text-slate-500">
-            Enter the organiser password to manage payments, run the draw, and enter results.
+            Sign in with your organiser email and password to manage payments, run the draw, and
+            enter results.
           </p>
           {error === "badpass" && (
             <p className="mb-3 rounded bg-red-50 px-3 py-2 text-sm text-red-700">
-              Wrong password — try again.
+              Email or password not recognised — try again.
             </p>
           )}
-          <form action={adminLogin.bind(null, slug)} className="flex gap-2">
+          <form action={adminLogin.bind(null, slug)} className="space-y-2">
+            <input name="email" type="email" className="input" placeholder="Organiser email" required />
             <input name="password" type="password" className="input" placeholder="Organiser password" required />
-            <button className="btn-primary">Sign in</button>
+            <button className="btn-primary w-full">Sign in</button>
           </form>
         </div>
       )}

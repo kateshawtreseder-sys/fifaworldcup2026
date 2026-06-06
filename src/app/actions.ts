@@ -34,12 +34,13 @@ async function requireAdmin(slug: string) {
 
 export async function createPool(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const stakePounds = Number(formData.get("stake") ?? 0);
   const password = String(formData.get("password") ?? "");
   const paymentLink = externalUrl(String(formData.get("paymentLink") ?? "")) || null;
 
-  if (!name || password.length < 4 || !(stakePounds > 0)) {
-    throw new Error("Please provide a name, a stake, and a password of at least 4 characters.");
+  if (!name || !email || password.length < 4 || !(stakePounds > 0)) {
+    throw new Error("Please provide a name, your email, a stake, and a password of at least 4 characters.");
   }
 
   // Ensure a unique slug.
@@ -56,6 +57,7 @@ export async function createPool(formData: FormData) {
       name,
       stakeAmount: Math.round(stakePounds * 100),
       paymentLink,
+      adminEmail: email,
       adminPasswordHash: await hashPassword(password),
       inviteToken: token(12),
       scoringConfig: JSON.stringify(DEFAULT_SCORING),
@@ -86,8 +88,12 @@ export async function updatePoolSettings(slug: string, formData: FormData) {
 export async function adminLogin(slug: string, formData: FormData) {
   const pool = await prisma.pool.findUnique({ where: { slug } });
   if (!pool) throw new Error("Pool not found");
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
-  if (!(await checkPassword(password, pool.adminPasswordHash))) {
+  const passwordOk = await checkPassword(password, pool.adminPasswordHash);
+  // Older pools have no admin email — fall back to password-only for them.
+  const emailOk = !pool.adminEmail || pool.adminEmail === email;
+  if (!passwordOk || !emailOk) {
     redirect(`/${slug}?error=badpass`);
   }
   await grantAdmin(slug, pool.id);

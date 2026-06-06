@@ -31,6 +31,23 @@ export default function HomePage() {
             />
           </div>
 
+          <div>
+            <label className="label" htmlFor="email">
+              Your email
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              className="input"
+              placeholder="you@example.com"
+              required
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              You&apos;ll sign in as organiser with this email and password.
+            </p>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="label" htmlFor="stake">

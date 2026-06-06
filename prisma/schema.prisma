@@ -19,6 +19,7 @@ model Pool {
   currency         String        @default("GBP")
   paymentLink      String? // organiser's Monzo.me / PayPal.me URL
   status           String        @default("open") // open | drawn | active | finished
+  adminEmail        String? // organiser's email (used with the password to sign in)
   adminPasswordHash String
   inviteToken      String        @unique
   drawSeed         String?
