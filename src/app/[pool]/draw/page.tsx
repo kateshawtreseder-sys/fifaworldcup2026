@@ -44,8 +44,12 @@ export default async function DrawPage({
         <div className="card space-y-4">
           <h1 className="text-lg font-semibold">Run the draw</h1>
           <p className="text-sm text-slate-600">
-            This randomly shares all {teamCount} teams between the {participants.length} player
-            {participants.length === 1 ? "" : "s"} who have joined.
+            This shares all {teamCount} teams between the {participants.length} player
+            {participants.length === 1 ? "" : "s"} who have joined — in a{" "}
+            <strong>balanced</strong> way: everyone gets a fair mix of strong and weaker teams,
+            and where the numbers don&apos;t divide evenly, the few players who get an extra team
+            only get one of the lowest-ranked teams. So having more teams isn&apos;t an unfair
+            advantage.
           </p>
           <div className="rounded-lg bg-slate-50 p-3 text-sm">
             <p>

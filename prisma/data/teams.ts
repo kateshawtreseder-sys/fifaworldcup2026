@@ -73,3 +73,17 @@ export const SEED_TEAMS: SeedTeam[] = [
   { fifaCode: "GHA", name: "Ghana", groupName: "L", flagEmoji: "🇬🇭" },
   { fifaCode: "PAN", name: "Panama", groupName: "L", flagEmoji: "🇵🇦" },
 ];
+
+// Strength tiers (pots) used only to make the draw fair: everyone gets a spread
+// across pots, and any "extra" teams handed out come from the weakest pot.
+// 1 = strongest … 4 = weakest. Not shown to players.
+export const TEAM_POT: Record<string, number> = {
+  // Pot 1 — hosts + top sides
+  MEX: 1, CAN: 1, USA: 1, BRA: 1, GER: 1, NED: 1, BEL: 1, ESP: 1, FRA: 1, ARG: 1, POR: 1, ENG: 1,
+  // Pot 2
+  SUI: 2, MAR: 2, SCO: 2, AUS: 2, ECU: 2, JPN: 2, IRN: 2, URU: 2, SEN: 2, NOR: 2, AUT: 2, CRO: 2,
+  // Pot 3
+  KOR: 3, QAT: 3, PAR: 3, TUR: 3, CIV: 3, TUN: 3, EGY: 3, KSA: 3, ALG: 3, COL: 3, PAN: 3, SWE: 3,
+  // Pot 4 — lowest ranked
+  RSA: 4, CZE: 4, BIH: 4, HAI: 4, CUW: 4, NZL: 4, CPV: 4, IRQ: 4, JOR: 4, COD: 4, UZB: 4, GHA: 4,
+};

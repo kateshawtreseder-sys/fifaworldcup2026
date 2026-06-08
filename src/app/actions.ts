@@ -17,6 +17,7 @@ import {
 import { slugify, externalUrl } from "@/lib/format";
 import { DEFAULT_SCORING } from "@/lib/scoring";
 import { runDraw, newSeed } from "@/lib/draw";
+import { TEAM_POT } from "../../prisma/data/teams";
 import { syncFromFootballData } from "@/lib/football-data";
 import { seedTeamsAndFixtures } from "@/lib/seed";
 
@@ -214,7 +215,7 @@ export async function runDrawAction(slug: string) {
   const seed = newSeed();
   const assignments = runDraw(
     participants.map((p) => p.id),
-    teams.map((t) => t.id),
+    teams.map((t) => ({ id: t.id, pot: TEAM_POT[t.fifaCode] ?? 4 })),
     seed
   );
 

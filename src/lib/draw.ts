@@ -36,23 +36,38 @@ function shuffle<T>(items: T[], rand: () => number): T[] {
 
 export type DrawResult = { participantId: string; teamId: string }[];
 
-// Allocate teams round-robin to participants after a seeded shuffle of both,
-// so each participant gets floor(T/N) or ceil(T/N) teams (differ by at most 1).
+// Balanced "snake" draft so the allocation is fair when teams don't divide
+// evenly between players:
+//   - Teams are ordered strongest → weakest (by pot, random within a pot).
+//   - Players are dealt in a snaking order (1..N, then N..1, ...), so whoever
+//     gets the best team gets a weaker next pick — balancing total strength.
+//   - The teams dealt last (the "extra" teams some players get) are therefore
+//     the weakest available, so an extra team is only ever a minnow.
 export function runDraw(
   participantIds: string[],
-  teamIds: string[],
+  teams: { id: string; pot: number }[],
   seed: string
 ): DrawResult {
   if (participantIds.length === 0) return [];
   const rand = seededRandom(seed);
-  const people = shuffle(participantIds, rand);
-  const teams = shuffle(teamIds, rand);
+  const players = shuffle(participantIds, rand);
+
+  // Order teams strongest → weakest, randomising within each pot.
+  const ordered = teams
+    .map((t) => ({ t, key: rand() }))
+    .sort((a, b) => a.t.pot - b.t.pot || a.key - b.key)
+    .map((x) => x.t);
 
   const result: DrawResult = [];
-  teams.forEach((teamId, i) => {
-    const participantId = people[i % people.length];
-    result.push({ participantId, teamId });
-  });
+  let round = 0;
+  for (let i = 0; i < ordered.length; round++) {
+    const order = round % 2 === 0 ? players : [...players].reverse();
+    for (const participantId of order) {
+      if (i >= ordered.length) break;
+      result.push({ participantId, teamId: ordered[i].id });
+      i++;
+    }
+  }
   return result;
 }
 
