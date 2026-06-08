@@ -40,17 +40,23 @@ export default async function ResultsPage({
     <main>
       <PoolNav slug={slug} name={pool.name} isAdmin={admin} />
 
-      {teams.length === 0 && (
-        <div className="card mb-4 border-amber-200 bg-amber-50">
-          <p className="text-sm font-medium text-amber-900">
-            ⚠️ No teams loaded yet. Load the 48 World Cup teams and all the group fixtures to
-            get started — you need this before the draw or entering results.
-          </p>
-          <form action={loadTeams.bind(null, slug)} className="mt-3">
-            <button className="btn-primary">Load the 48 teams &amp; fixtures</button>
-          </form>
-        </div>
-      )}
+      <div className="card mb-4 border-amber-200 bg-amber-50">
+        <p className="text-sm font-medium text-amber-900">
+          {teams.length === 0
+            ? "⚠️ No teams loaded yet. Load the 48 official World Cup 2026 teams and all the group fixtures to get started — you need this before the draw or entering results."
+            : "Load the official World Cup 2026 teams & fixtures. Use this to (re)load the line-up."}
+        </p>
+        <p className="mt-1 text-xs text-amber-800">
+          Note: this resets teams, fixtures and any draw/results, and reopens the pool for a fresh
+          draw. Players, payments and announcements are kept. Do it <strong>before</strong> the
+          tournament starts.
+        </p>
+        <form action={loadTeams.bind(null, slug)} className="mt-3">
+          <button className="btn-primary">
+            {teams.length === 0 ? "Load the 48 teams & fixtures" : "Reload official teams & fixtures"}
+          </button>
+        </form>
+      </div>
 
       {error === "teams" && (
         <div className="card mb-4 border-red-200 bg-red-50 text-sm text-red-700">

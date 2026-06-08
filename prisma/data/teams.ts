@@ -1,9 +1,8 @@
-// 48 teams for the FIFA World Cup 2026, split into 12 groups (A–L) of 4.
+// The official 48 teams for the FIFA World Cup 2026, in their drawn groups
+// (final draw, 5 December 2025). Source: openfootball public-domain data.
 //
-// NOTE: This is a representative line-up to get the app working end-to-end.
-// The real groups can be edited here (or via the database) once the official
-// draw is confirmed — fifaCode, name, groupName and flagEmoji are all that
-// matter. Hosts (CAN, MEX, USA) are included.
+// If anything needs correcting, just edit the name / groupName / flagEmoji here
+// and have the organiser tap "Load teams" again.
 
 export type SeedTeam = {
   fifaCode: string;
@@ -15,62 +14,62 @@ export type SeedTeam = {
 export const SEED_TEAMS: SeedTeam[] = [
   // Group A
   { fifaCode: "MEX", name: "Mexico", groupName: "A", flagEmoji: "🇲🇽" },
-  { fifaCode: "CRO", name: "Croatia", groupName: "A", flagEmoji: "🇭🇷" },
-  { fifaCode: "ECU", name: "Ecuador", groupName: "A", flagEmoji: "🇪🇨" },
-  { fifaCode: "QAT", name: "Qatar", groupName: "A", flagEmoji: "🇶🇦" },
+  { fifaCode: "RSA", name: "South Africa", groupName: "A", flagEmoji: "🇿🇦" },
+  { fifaCode: "KOR", name: "South Korea", groupName: "A", flagEmoji: "🇰🇷" },
+  { fifaCode: "CZE", name: "Czech Republic", groupName: "A", flagEmoji: "🇨🇿" },
   // Group B
   { fifaCode: "CAN", name: "Canada", groupName: "B", flagEmoji: "🇨🇦" },
-  { fifaCode: "BEL", name: "Belgium", groupName: "B", flagEmoji: "🇧🇪" },
-  { fifaCode: "KOR", name: "South Korea", groupName: "B", flagEmoji: "🇰🇷" },
-  { fifaCode: "EGY", name: "Egypt", groupName: "B", flagEmoji: "🇪🇬" },
+  { fifaCode: "BIH", name: "Bosnia & Herzegovina", groupName: "B", flagEmoji: "🇧🇦" },
+  { fifaCode: "QAT", name: "Qatar", groupName: "B", flagEmoji: "🇶🇦" },
+  { fifaCode: "SUI", name: "Switzerland", groupName: "B", flagEmoji: "🇨🇭" },
   // Group C
-  { fifaCode: "USA", name: "United States", groupName: "C", flagEmoji: "🇺🇸" },
-  { fifaCode: "URU", name: "Uruguay", groupName: "C", flagEmoji: "🇺🇾" },
-  { fifaCode: "JPN", name: "Japan", groupName: "C", flagEmoji: "🇯🇵" },
-  { fifaCode: "GHA", name: "Ghana", groupName: "C", flagEmoji: "🇬🇭" },
+  { fifaCode: "BRA", name: "Brazil", groupName: "C", flagEmoji: "🇧🇷" },
+  { fifaCode: "MAR", name: "Morocco", groupName: "C", flagEmoji: "🇲🇦" },
+  { fifaCode: "HAI", name: "Haiti", groupName: "C", flagEmoji: "🇭🇹" },
+  { fifaCode: "SCO", name: "Scotland", groupName: "C", flagEmoji: "🏴󠁧󠁢󠁳󠁣󠁴󠁿" },
   // Group D
-  { fifaCode: "ARG", name: "Argentina", groupName: "D", flagEmoji: "🇦🇷" },
-  { fifaCode: "POL", name: "Poland", groupName: "D", flagEmoji: "🇵🇱" },
+  { fifaCode: "USA", name: "United States", groupName: "D", flagEmoji: "🇺🇸" },
+  { fifaCode: "PAR", name: "Paraguay", groupName: "D", flagEmoji: "🇵🇾" },
   { fifaCode: "AUS", name: "Australia", groupName: "D", flagEmoji: "🇦🇺" },
-  { fifaCode: "CIV", name: "Ivory Coast", groupName: "D", flagEmoji: "🇨🇮" },
+  { fifaCode: "TUR", name: "Turkey", groupName: "D", flagEmoji: "🇹🇷" },
   // Group E
-  { fifaCode: "FRA", name: "France", groupName: "E", flagEmoji: "🇫🇷" },
-  { fifaCode: "SEN", name: "Senegal", groupName: "E", flagEmoji: "🇸🇳" },
-  { fifaCode: "MAR", name: "Morocco", groupName: "E", flagEmoji: "🇲🇦" },
-  { fifaCode: "NZL", name: "New Zealand", groupName: "E", flagEmoji: "🇳🇿" },
+  { fifaCode: "GER", name: "Germany", groupName: "E", flagEmoji: "🇩🇪" },
+  { fifaCode: "CUW", name: "Curaçao", groupName: "E", flagEmoji: "🇨🇼" },
+  { fifaCode: "CIV", name: "Ivory Coast", groupName: "E", flagEmoji: "🇨🇮" },
+  { fifaCode: "ECU", name: "Ecuador", groupName: "E", flagEmoji: "🇪🇨" },
   // Group F
-  { fifaCode: "ENG", name: "England", groupName: "F", flagEmoji: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" },
-  { fifaCode: "COL", name: "Colombia", groupName: "F", flagEmoji: "🇨🇴" },
-  { fifaCode: "IRN", name: "Iran", groupName: "F", flagEmoji: "🇮🇷" },
-  { fifaCode: "PAN", name: "Panama", groupName: "F", flagEmoji: "🇵🇦" },
+  { fifaCode: "NED", name: "Netherlands", groupName: "F", flagEmoji: "🇳🇱" },
+  { fifaCode: "JPN", name: "Japan", groupName: "F", flagEmoji: "🇯🇵" },
+  { fifaCode: "SWE", name: "Sweden", groupName: "F", flagEmoji: "🇸🇪" },
+  { fifaCode: "TUN", name: "Tunisia", groupName: "F", flagEmoji: "🇹🇳" },
   // Group G
-  { fifaCode: "BRA", name: "Brazil", groupName: "G", flagEmoji: "🇧🇷" },
-  { fifaCode: "SUI", name: "Switzerland", groupName: "G", flagEmoji: "🇨🇭" },
-  { fifaCode: "NGA", name: "Nigeria", groupName: "G", flagEmoji: "🇳🇬" },
-  { fifaCode: "KSA", name: "Saudi Arabia", groupName: "G", flagEmoji: "🇸🇦" },
+  { fifaCode: "BEL", name: "Belgium", groupName: "G", flagEmoji: "🇧🇪" },
+  { fifaCode: "EGY", name: "Egypt", groupName: "G", flagEmoji: "🇪🇬" },
+  { fifaCode: "IRN", name: "Iran", groupName: "G", flagEmoji: "🇮🇷" },
+  { fifaCode: "NZL", name: "New Zealand", groupName: "G", flagEmoji: "🇳🇿" },
   // Group H
   { fifaCode: "ESP", name: "Spain", groupName: "H", flagEmoji: "🇪🇸" },
-  { fifaCode: "DEN", name: "Denmark", groupName: "H", flagEmoji: "🇩🇰" },
-  { fifaCode: "TUN", name: "Tunisia", groupName: "H", flagEmoji: "🇹🇳" },
-  { fifaCode: "CRC", name: "Costa Rica", groupName: "H", flagEmoji: "🇨🇷" },
+  { fifaCode: "CPV", name: "Cape Verde", groupName: "H", flagEmoji: "🇨🇻" },
+  { fifaCode: "KSA", name: "Saudi Arabia", groupName: "H", flagEmoji: "🇸🇦" },
+  { fifaCode: "URU", name: "Uruguay", groupName: "H", flagEmoji: "🇺🇾" },
   // Group I
-  { fifaCode: "POR", name: "Portugal", groupName: "I", flagEmoji: "🇵🇹" },
-  { fifaCode: "SRB", name: "Serbia", groupName: "I", flagEmoji: "🇷🇸" },
-  { fifaCode: "CMR", name: "Cameroon", groupName: "I", flagEmoji: "🇨🇲" },
-  { fifaCode: "JAM", name: "Jamaica", groupName: "I", flagEmoji: "🇯🇲" },
+  { fifaCode: "FRA", name: "France", groupName: "I", flagEmoji: "🇫🇷" },
+  { fifaCode: "SEN", name: "Senegal", groupName: "I", flagEmoji: "🇸🇳" },
+  { fifaCode: "IRQ", name: "Iraq", groupName: "I", flagEmoji: "🇮🇶" },
+  { fifaCode: "NOR", name: "Norway", groupName: "I", flagEmoji: "🇳🇴" },
   // Group J
-  { fifaCode: "GER", name: "Germany", groupName: "J", flagEmoji: "🇩🇪" },
-  { fifaCode: "NED", name: "Netherlands", groupName: "J", flagEmoji: "🇳🇱" },
+  { fifaCode: "ARG", name: "Argentina", groupName: "J", flagEmoji: "🇦🇷" },
   { fifaCode: "ALG", name: "Algeria", groupName: "J", flagEmoji: "🇩🇿" },
-  { fifaCode: "HON", name: "Honduras", groupName: "J", flagEmoji: "🇭🇳" },
+  { fifaCode: "AUT", name: "Austria", groupName: "J", flagEmoji: "🇦🇹" },
+  { fifaCode: "JOR", name: "Jordan", groupName: "J", flagEmoji: "🇯🇴" },
   // Group K
-  { fifaCode: "ITA", name: "Italy", groupName: "K", flagEmoji: "🇮🇹" },
-  { fifaCode: "MLI", name: "Mali", groupName: "K", flagEmoji: "🇲🇱" },
-  { fifaCode: "PER", name: "Peru", groupName: "K", flagEmoji: "🇵🇪" },
+  { fifaCode: "POR", name: "Portugal", groupName: "K", flagEmoji: "🇵🇹" },
+  { fifaCode: "COD", name: "DR Congo", groupName: "K", flagEmoji: "🇨🇩" },
   { fifaCode: "UZB", name: "Uzbekistan", groupName: "K", flagEmoji: "🇺🇿" },
+  { fifaCode: "COL", name: "Colombia", groupName: "K", flagEmoji: "🇨🇴" },
   // Group L
-  { fifaCode: "NOR", name: "Norway", groupName: "L", flagEmoji: "🇳🇴" },
-  { fifaCode: "AUT", name: "Austria", groupName: "L", flagEmoji: "🇦🇹" },
-  { fifaCode: "PAR", name: "Paraguay", groupName: "L", flagEmoji: "🇵🇾" },
-  { fifaCode: "RSA", name: "South Africa", groupName: "L", flagEmoji: "🇿🇦" },
+  { fifaCode: "ENG", name: "England", groupName: "L", flagEmoji: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" },
+  { fifaCode: "CRO", name: "Croatia", groupName: "L", flagEmoji: "🇭🇷" },
+  { fifaCode: "GHA", name: "Ghana", groupName: "L", flagEmoji: "🇬🇭" },
+  { fifaCode: "PAN", name: "Panama", groupName: "L", flagEmoji: "🇵🇦" },
 ];

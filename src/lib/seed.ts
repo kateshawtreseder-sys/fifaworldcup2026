@@ -16,13 +16,15 @@ const GROUP_PAIRINGS: [number, number][] = [
 ];
 
 export async function seedTeamsAndFixtures(prisma: PrismaClient) {
-  for (const t of SEED_TEAMS) {
-    await prisma.team.upsert({
-      where: { fifaCode: t.fifaCode },
-      update: { name: t.name, groupName: t.groupName, flagEmoji: t.flagEmoji },
-      create: t,
-    });
-  }
+  // Clean reset so this can also be used to *replace* the team line-up (e.g.
+  // swapping placeholders for the official draw) without leaving stale teams or
+  // fixtures behind. This clears any existing draw (assignments) and results,
+  // but leaves participants, payments and announcements untouched.
+  await prisma.match.deleteMany({});
+  await prisma.assignment.deleteMany({});
+  await prisma.team.deleteMany({});
+
+  await prisma.team.createMany({ data: SEED_TEAMS });
 
   const teams = await prisma.team.findMany();
   const byGroup = new Map<string, typeof teams>();

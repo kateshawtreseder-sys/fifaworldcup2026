@@ -284,11 +284,20 @@ export async function createKnockoutMatch(slug: string, formData: FormData) {
   revalidatePath(`/${slug}/admin/results`);
 }
 
-// Loads the 48 teams + group fixtures into the database (idempotent).
-// Available to the organiser so they never need the /api/setup URL.
+// Loads (or replaces) the 48 teams + group fixtures in the database.
+// Available to the organiser so they never need the /api/setup URL. Because it
+// resets teams/fixtures and clears any existing draw, it also reopens this pool
+// so the organiser can run a fresh draw with the loaded teams.
 export async function loadTeams(slug: string) {
-  await requireAdmin(slug);
+  const pool = await requireAdmin(slug);
   await seedTeamsAndFixtures(prisma);
+  if (pool.status !== "open") {
+    await prisma.pool.update({
+      where: { id: pool.id },
+      data: { status: "open", drawSeed: null },
+    });
+  }
+  revalidatePath(`/${slug}`);
   revalidatePath(`/${slug}/admin/results`);
   revalidatePath(`/${slug}/draw`);
   revalidatePath(`/${slug}/leaderboard`);
