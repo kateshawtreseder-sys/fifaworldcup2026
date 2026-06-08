@@ -12,10 +12,10 @@ export default async function ResultsPage({
   searchParams,
 }: {
   params: Promise<{ pool: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; sync?: string; c?: string; u?: string; s?: string; m?: string }>;
 }) {
   const { pool: slug } = await params;
-  const { error } = await searchParams;
+  const { error, sync, c, u, s, m } = await searchParams;
   const { pool, admin } = await getPoolContext(slug);
   if (!admin) redirect(`/${slug}`);
 
@@ -61,6 +61,19 @@ export default async function ResultsPage({
       {error === "teams" && (
         <div className="card mb-4 border-red-200 bg-red-50 text-sm text-red-700">
           Pick two different teams to add a knockout match.
+        </div>
+      )}
+
+      {sync === "ok" && (
+        <div className="card mb-4 border-pitch-200 bg-pitch-50 text-sm text-pitch-800">
+          ✅ Synced from football-data.org — {u ?? 0} match{u === "1" ? "" : "es"} updated,{" "}
+          {c ?? 0} added{Number(s) > 0 ? `, ${s} skipped (not matched)` : ""}.
+        </div>
+      )}
+      {sync === "err" && (
+        <div className="card mb-4 border-red-200 bg-red-50 text-sm text-red-700">
+          ⚠️ Sync didn&apos;t work: {m ? decodeURIComponent(m) : "unknown error"}. You can still
+          enter scores by hand below.
         </div>
       )}
 

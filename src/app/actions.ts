@@ -305,9 +305,13 @@ export async function loadTeams(slug: string) {
 
 export async function syncNow(slug: string) {
   await requireAdmin(slug);
-  await syncFromFootballData();
+  const r = await syncFromFootballData();
   revalidatePath(`/${slug}/admin/results`);
   revalidatePath(`/${slug}/leaderboard`);
+  const q = r.ok
+    ? `sync=ok&c=${r.created}&u=${r.updated}&s=${r.skipped}`
+    : `sync=err&m=${encodeURIComponent(r.error ?? "failed")}`;
+  redirect(`/${slug}/admin/results?${q}`);
 }
 
 // --- Announcements ---
