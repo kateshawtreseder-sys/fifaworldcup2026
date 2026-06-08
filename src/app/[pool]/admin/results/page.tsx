@@ -3,16 +3,19 @@ import { prisma } from "@/lib/prisma";
 import { getPoolContext } from "@/lib/loaders";
 import { STAGE_LABELS } from "@/lib/format";
 import { PoolNav } from "@/components/PoolNav";
-import { saveResult, createKnockoutMatch, syncNow } from "../../../actions";
+import { saveResult, createKnockoutMatch, syncNow, loadTeams } from "../../../actions";
 
 const STAGE_ORDER = ["group", "R32", "R16", "QF", "SF", "final"];
 
 export default async function ResultsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ pool: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
   const { pool: slug } = await params;
+  const { error } = await searchParams;
   const { pool, admin } = await getPoolContext(slug);
   if (!admin) redirect(`/${slug}`);
 
@@ -37,6 +40,24 @@ export default async function ResultsPage({
     <main>
       <PoolNav slug={slug} name={pool.name} isAdmin={admin} />
 
+      {teams.length === 0 && (
+        <div className="card mb-4 border-amber-200 bg-amber-50">
+          <p className="text-sm font-medium text-amber-900">
+            ⚠️ No teams loaded yet. Load the 48 World Cup teams and all the group fixtures to
+            get started — you need this before the draw or entering results.
+          </p>
+          <form action={loadTeams.bind(null, slug)} className="mt-3">
+            <button className="btn-primary">Load the 48 teams &amp; fixtures</button>
+          </form>
+        </div>
+      )}
+
+      {error === "teams" && (
+        <div className="card mb-4 border-red-200 bg-red-50 text-sm text-red-700">
+          Pick two different teams to add a knockout match.
+        </div>
+      )}
+
       <div className="card mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold">Results</h1>
@@ -52,6 +73,7 @@ export default async function ResultsPage({
         </form>
       </div>
 
+      {teams.length > 0 && (
       <details className="card mb-4">
         <summary className="cursor-pointer font-semibold">+ Add a knockout match</summary>
         <form action={createKnockoutMatch.bind(null, slug)} className="mt-3 space-y-3">
@@ -81,6 +103,7 @@ export default async function ResultsPage({
           <button className="btn-secondary">Add match</button>
         </form>
       </details>
+      )}
 
       {STAGE_ORDER.filter((s) => byStage.has(s)).map((stage) => (
         <section key={stage} className="mb-6">

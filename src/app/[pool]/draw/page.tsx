@@ -61,8 +61,14 @@ export default async function DrawPage({
             ⚠️ Once you run the draw, the sweepstake closes to new joiners. Make sure everyone
             has joined first.
           </p>
+          {teamCount === 0 && (
+            <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">
+              No teams are loaded yet. Go to the <strong>Results</strong> page and tap
+              “Load the 48 teams &amp; fixtures” first.
+            </p>
+          )}
           <form action={runDrawAction.bind(null, slug)}>
-            <button className="btn-primary w-full" disabled={participants.length === 0}>
+            <button className="btn-primary w-full" disabled={participants.length === 0 || teamCount === 0}>
               🎲 Run the draw
             </button>
           </form>

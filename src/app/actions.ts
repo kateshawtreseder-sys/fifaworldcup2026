@@ -18,6 +18,7 @@ import { slugify, externalUrl } from "@/lib/format";
 import { DEFAULT_SCORING } from "@/lib/scoring";
 import { runDraw, newSeed } from "@/lib/draw";
 import { syncFromFootballData } from "@/lib/football-data";
+import { seedTeamsAndFixtures } from "@/lib/seed";
 
 function token(bytes = 9): string {
   return crypto.randomBytes(bytes).toString("base64url");
@@ -271,14 +272,26 @@ export async function createKnockoutMatch(slug: string, formData: FormData) {
   const stage = String(formData.get("stage"));
   const homeTeamId = String(formData.get("homeTeamId"));
   const awayTeamId = String(formData.get("awayTeamId"));
-  if (!["R32", "R16", "QF", "SF", "final"].includes(stage)) throw new Error("Invalid stage");
+  if (!["R32", "R16", "QF", "SF", "final"].includes(stage)) {
+    redirect(`/${slug}/admin/results?error=stage`);
+  }
   if (!homeTeamId || !awayTeamId || homeTeamId === awayTeamId) {
-    throw new Error("Pick two different teams.");
+    redirect(`/${slug}/admin/results?error=teams`);
   }
   await prisma.match.create({
     data: { stage, homeTeamId, awayTeamId, status: "scheduled" },
   });
   revalidatePath(`/${slug}/admin/results`);
+}
+
+// Loads the 48 teams + group fixtures into the database (idempotent).
+// Available to the organiser so they never need the /api/setup URL.
+export async function loadTeams(slug: string) {
+  await requireAdmin(slug);
+  await seedTeamsAndFixtures(prisma);
+  revalidatePath(`/${slug}/admin/results`);
+  revalidatePath(`/${slug}/draw`);
+  revalidatePath(`/${slug}/leaderboard`);
 }
 
 export async function syncNow(slug: string) {
