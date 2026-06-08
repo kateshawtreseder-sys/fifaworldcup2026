@@ -1,9 +1,23 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "World Cup 2026 Sweepstake",
   description: "A family sweepstake for the FIFA World Cup 2026 — join, pay, get your teams, follow the live leaderboard.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "WC Sweepstake",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0b1020",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
