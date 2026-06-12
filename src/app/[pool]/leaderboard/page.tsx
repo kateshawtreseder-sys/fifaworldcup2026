@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getPoolContext, getCurrentParticipant } from "@/lib/loaders";
 import { buildLeaderboard, parseScoring } from "@/lib/scoring";
@@ -31,6 +32,8 @@ export default async function LeaderboardPage({
 }) {
   const { pool: slug } = await params;
   const { pool, admin } = await getPoolContext(slug);
+  // Players get the single-scroll hub (leaderboard + teams) on the main page.
+  if (!admin) redirect(`/${slug}`);
   const me = await getCurrentParticipant(slug, pool.id);
 
   const [participants, assignments, matches, teams, announcements] = await Promise.all([
