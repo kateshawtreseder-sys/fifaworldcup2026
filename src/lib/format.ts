@@ -35,3 +35,14 @@ export function externalUrl(url: string | null | undefined): string {
   const trimmed = url.trim();
   return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
 }
+
+// Furthest knockout round a team reached, as a friendly label ("" if none).
+const STAGE_RANK = ["R32", "R16", "QF", "SF", "final"];
+export function furthestStageLabel(stages: string[]): string {
+  let bestIdx = -1;
+  for (const s of stages) {
+    const i = STAGE_RANK.indexOf(s);
+    if (i > bestIdx) bestIdx = i;
+  }
+  return bestIdx >= 0 ? STAGE_LABELS[STAGE_RANK[bestIdx]] ?? "" : "";
+}

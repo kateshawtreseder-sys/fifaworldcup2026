@@ -127,7 +127,7 @@ export async function joinPool(inviteToken: string, formData: FormData) {
   if (existing) {
     if (existing.passwordHash && (await checkPassword(password, existing.passwordHash))) {
       await setParticipant(pool.slug, existing.joinToken);
-      redirect(`/${pool.slug}/me`);
+      redirect(`/${pool.slug}`);
     }
     redirect(`/join/${inviteToken}?error=exists`);
   }
@@ -137,7 +137,7 @@ export async function joinPool(inviteToken: string, formData: FormData) {
   });
 
   await setParticipant(pool.slug, participant.joinToken);
-  redirect(`/${pool.slug}/me`);
+  redirect(`/${pool.slug}`);
 }
 
 // Existing guest logs back in with their email + password (any device).
@@ -153,12 +153,12 @@ export async function participantLogin(slug: string, formData: FormData) {
     redirect(`/${slug}/login?error=bad`);
   }
   await setParticipant(slug, p.joinToken);
-  redirect(`/${slug}/me`);
+  redirect(`/${slug}`);
 }
 
 export async function participantLogout(slug: string) {
   await clearParticipant(slug);
-  redirect(`/${slug}/login`);
+  redirect(`/${slug}`);
 }
 
 // --- Payments tracking ---
