@@ -4,21 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { getPoolContext, getCurrentParticipant } from "@/lib/loaders";
 import { formatMoney, externalUrl, furthestStageLabel, STAGE_LABELS } from "@/lib/format";
 import { buildLeaderboard, parseScoring } from "@/lib/scoring";
-import { inviteUrl } from "@/lib/share";
 import { maybeAutoSync } from "@/lib/football-data";
 import { PoolNav } from "@/components/PoolNav";
-import { CopyButton } from "@/components/CopyButton";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { Announcements } from "@/components/Announcements";
 import { BurgerMenu } from "@/components/BurgerMenu";
 import { LeaderboardView, type PlayerRow } from "@/components/LeaderboardView";
-import {
-  adminLogin,
-  adminLogout,
-  updatePoolSettings,
-  claimPaid,
-  participantLogout,
-} from "../actions";
+import { adminLogin, claimPaid, participantLogout } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -33,93 +25,9 @@ export default async function PoolHome({
   const { error } = await searchParams;
   const { pool, admin } = await getPoolContext(slug);
 
-  // ---------- Organiser dashboard ----------
-  if (admin) {
-    const [playerCount, paidCount] = await Promise.all([
-      prisma.participant.count({ where: { poolId: pool.id } }),
-      prisma.participant.count({ where: { poolId: pool.id, paid: true } }),
-    ]);
-    const pot = paidCount * pool.stakeAmount;
-    const statusLabel: Record<string, string> = {
-      open: "Open — people can still join",
-      drawn: "Teams drawn",
-      active: "Teams drawn — tournament under way",
-      finished: "Finished",
-    };
+  // Keep scores fresh while anyone's watching.
+  after(() => maybeAutoSync());
 
-    return (
-      <main>
-        <PoolNav slug={slug} name={pool.name} isAdmin={admin} />
-
-        <div className="card mb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-500">Stake</p>
-              <p className="text-xl font-bold">{formatMoney(pool.stakeAmount, pool.currency)}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-slate-500">Status</p>
-              <p className="font-semibold text-pitch-800">{statusLabel[pool.status]}</p>
-            </div>
-          </div>
-          <div className="mt-4 grid grid-cols-3 gap-3 text-center">
-            <Stat label="Players" value={String(playerCount)} />
-            <Stat label="Paid" value={`${paidCount}/${playerCount}`} />
-            <Stat label="Pot" value={formatMoney(pot, pool.currency)} />
-          </div>
-        </div>
-
-        <div className="card mb-4">
-          <h2 className="mb-3 font-semibold">Share your invite</h2>
-          <div className="flex flex-wrap items-center gap-2">
-            <code className="flex-1 break-all rounded bg-slate-100 px-3 py-2 text-xs">
-              {inviteUrl(pool.inviteToken)}
-            </code>
-            <CopyButton value={inviteUrl(pool.inviteToken)} label="Copy link" />
-            <Link href={`/${slug}/invite`} className="btn-primary">
-              Share options →
-            </Link>
-          </div>
-        </div>
-
-        <div className="card mb-4">
-          <h2 className="mb-3 font-semibold">Settings</h2>
-          <form action={updatePoolSettings.bind(null, slug)} className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="label">Stake per person (£)</label>
-                <input
-                  name="stake"
-                  type="number"
-                  min="1"
-                  step="0.5"
-                  defaultValue={(pool.stakeAmount / 100).toString()}
-                  className="input"
-                />
-              </div>
-              <div>
-                <label className="label">Payment link</label>
-                <input
-                  name="paymentLink"
-                  defaultValue={pool.paymentLink ?? ""}
-                  placeholder="https://monzo.me/yourname"
-                  className="input"
-                />
-              </div>
-            </div>
-            <button className="btn-primary">Save settings</button>
-          </form>
-        </div>
-
-        <form action={adminLogout.bind(null, slug)}>
-          <button className="text-sm text-slate-500 underline">Log out of organiser mode</button>
-        </form>
-      </main>
-    );
-  }
-
-  // ---------- Player view: leaderboard → latest results → log out / organiser ----------
-  after(() => maybeAutoSync()); // keep scores fresh while anyone's watching
   const me = await getCurrentParticipant(slug, pool.id);
   const [participants, assignments, matches, teams, announcements] = await Promise.all([
     prisma.participant.findMany({ where: { poolId: pool.id } }),
@@ -157,7 +65,7 @@ export default async function PoolHome({
   const drawn = pool.status !== "open";
   const stake = formatMoney(pool.stakeAmount, pool.currency);
 
-  // Most-recently-updated finished matches, to show under the leaderboard.
+  // Most-recently-updated finished matches, shown under the leaderboard.
   const recent = matches
     .filter((m) => m.status === "finished")
     .sort((a, b) => +b.updatedAt - +a.updatedAt)
@@ -165,33 +73,37 @@ export default async function PoolHome({
 
   return (
     <main>
-      {/* Header: title + burger menu */}
-      <header className="mb-6 flex items-center justify-between border-b border-slate-200 pb-4">
-        <Link href={`/${slug}`} className="text-xl font-extrabold brand-gradient">
-          ⚽ {pool.name}
-        </Link>
-        <BurgerMenu>
-          <Link href={`/${slug}/me`} className="block px-4 py-3 text-sm hover:bg-slate-50">
-            👤 My teams
+      {/* Header: organiser keeps the nav buttons; players get the burger menu */}
+      {admin ? (
+        <PoolNav slug={slug} name={pool.name} isAdmin />
+      ) : (
+        <header className="mb-6 flex items-center justify-between border-b border-slate-200 pb-4">
+          <Link href={`/${slug}`} className="text-xl font-extrabold brand-gradient">
+            ⚽ {pool.name}
           </Link>
-          <Link href={`/${slug}/all-teams`} className="block border-t border-slate-100 px-4 py-3 text-sm hover:bg-slate-50">
-            👥 All teams
-          </Link>
-          {me && (
-            <form action={participantLogout.bind(null, slug)} className="border-t border-slate-100">
-              <button className="block w-full px-4 py-3 text-left text-sm hover:bg-slate-50">
-                🚪 Log out
-              </button>
-            </form>
-          )}
-        </BurgerMenu>
-      </header>
+          <BurgerMenu>
+            <Link href={`/${slug}/me`} className="block px-4 py-3 text-sm hover:bg-slate-50">
+              👤 My teams
+            </Link>
+            <Link href={`/${slug}/all-teams`} className="block border-t border-slate-100 px-4 py-3 text-sm hover:bg-slate-50">
+              👥 All teams
+            </Link>
+            {me && (
+              <form action={participantLogout.bind(null, slug)} className="border-t border-slate-100">
+                <button className="block w-full px-4 py-3 text-left text-sm hover:bg-slate-50">
+                  🚪 Log out
+                </button>
+              </form>
+            )}
+          </BurgerMenu>
+        </header>
+      )}
 
       <AutoRefresh seconds={60} />
       <Announcements items={announcements} />
 
-      {/* Not-logged-in prompt */}
-      {!me && (
+      {/* Not-logged-in prompt (players only) */}
+      {!admin && !me && (
         <div className="card mb-4 text-center">
           <p className="text-sm text-slate-600">Log in to see your teams and pay your stake.</p>
           <div className="mt-3 flex flex-wrap justify-center gap-2">
@@ -263,33 +175,26 @@ export default async function PoolHome({
         </section>
       )}
 
-      {/* Organiser sign in (discreet) */}
-      <footer className="mt-8 border-t border-slate-200 pt-4">
-        <details className="text-sm" open={error === "badpass"}>
-          <summary className="cursor-pointer text-slate-500">Organiser sign in</summary>
-          <div className="mt-3 card">
-            {error === "badpass" && (
-              <p className="mb-3 rounded bg-red-50 px-3 py-2 text-sm text-red-700">
-                Email or password not recognised — try again.
-              </p>
-            )}
-            <form action={adminLogin.bind(null, slug)} className="space-y-2">
-              <input name="email" type="email" className="input" placeholder="Organiser email" required />
-              <input name="password" type="password" className="input" placeholder="Organiser password" required />
-              <button className="btn-primary w-full">Sign in</button>
-            </form>
-          </div>
-        </details>
-      </footer>
+      {/* Organiser sign in (only when not already signed in) */}
+      {!admin && (
+        <footer className="mt-8 border-t border-slate-200 pt-4">
+          <details className="text-sm" open={error === "badpass"}>
+            <summary className="cursor-pointer text-slate-500">Organiser sign in</summary>
+            <div className="mt-3 card">
+              {error === "badpass" && (
+                <p className="mb-3 rounded bg-red-50 px-3 py-2 text-sm text-red-700">
+                  Email or password not recognised — try again.
+                </p>
+              )}
+              <form action={adminLogin.bind(null, slug)} className="space-y-2">
+                <input name="email" type="email" className="input" placeholder="Organiser email" required />
+                <input name="password" type="password" className="input" placeholder="Organiser password" required />
+                <button className="btn-primary w-full">Sign in</button>
+              </form>
+            </div>
+          </details>
+        </footer>
+      )}
     </main>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg bg-slate-50 p-3">
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="text-lg font-bold">{value}</p>
-    </div>
   );
 }

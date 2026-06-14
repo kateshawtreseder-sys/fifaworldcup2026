@@ -2,8 +2,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getPoolContext } from "@/lib/loaders";
+import { formatMoney } from "@/lib/format";
+import { inviteUrl } from "@/lib/share";
 import { PoolNav } from "@/components/PoolNav";
-import { postAnnouncement, deleteAnnouncement } from "../../actions";
+import { CopyButton } from "@/components/CopyButton";
+import { postAnnouncement, deleteAnnouncement, updatePoolSettings } from "../../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -22,20 +25,24 @@ export default async function AdminHub({
     prisma.participant.count({ where: { poolId: pool.id } }),
     prisma.participant.count({ where: { poolId: pool.id, paid: true } }),
   ]);
+  const pot = paidCount * pool.stakeAmount;
 
   return (
     <main>
       <PoolNav slug={slug} name={pool.name} isAdmin={admin} />
       <h1 className="mb-4 text-xl font-bold">🛠️ Organiser panel</h1>
 
+      {/* Stats */}
+      <div className="card mb-4 grid grid-cols-3 gap-3 text-center">
+        <Stat label="Players" value={String(playerCount)} />
+        <Stat label="Paid" value={`${paidCount}/${playerCount}`} />
+        <Stat label="Pot" value={formatMoney(pot, pool.currency)} />
+      </div>
+
       {!pool.paymentLink && (
         <div className="card mb-4 border-amber-200 bg-amber-50 text-sm text-amber-900">
           ⚠️ You haven&apos;t set a <strong>payment link</strong> yet, so guests can&apos;t tap to
-          pay. Add your Monzo/PayPal link on the{" "}
-          <Link href={`/${slug}`} className="font-semibold underline">
-            dashboard settings
-          </Link>
-          .
+          pay. Add your Monzo/PayPal link in <strong>Settings</strong> below.
         </div>
       )}
 
@@ -57,18 +64,61 @@ export default async function AdminHub({
           <div className="text-2xl">📊</div>
           <div className="mt-1 text-sm font-semibold">Scores &amp; sync</div>
         </Link>
-        <Link href={`/${slug}/leaderboard`} className="card text-center hover:bg-slate-50">
-          <div className="text-2xl">🏆</div>
-          <div className="mt-1 text-sm font-semibold">Leaderboard</div>
+        <Link href={`/${slug}/invite`} className="card text-center hover:bg-slate-50">
+          <div className="text-2xl">📨</div>
+          <div className="mt-1 text-sm font-semibold">Invite</div>
         </Link>
+      </div>
+
+      {/* Share invite */}
+      <div className="card mb-4">
+        <h2 className="mb-3 font-semibold">Share your invite</h2>
+        <div className="flex flex-wrap items-center gap-2">
+          <code className="flex-1 break-all rounded bg-slate-100 px-3 py-2 text-xs">
+            {inviteUrl(pool.inviteToken)}
+          </code>
+          <CopyButton value={inviteUrl(pool.inviteToken)} label="Copy link" />
+          <Link href={`/${slug}/invite`} className="btn-primary">
+            Share options →
+          </Link>
+        </div>
+      </div>
+
+      {/* Settings */}
+      <div className="card mb-4">
+        <h2 className="mb-3 font-semibold">Settings</h2>
+        <form action={updatePoolSettings.bind(null, slug)} className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">Stake per person (£)</label>
+              <input
+                name="stake"
+                type="number"
+                min="1"
+                step="0.5"
+                defaultValue={(pool.stakeAmount / 100).toString()}
+                className="input"
+              />
+            </div>
+            <div>
+              <label className="label">Payment link</label>
+              <input
+                name="paymentLink"
+                defaultValue={pool.paymentLink ?? ""}
+                placeholder="https://monzo.me/yourname"
+                className="input"
+              />
+            </div>
+          </div>
+          <button className="btn-primary">Save settings</button>
+        </form>
       </div>
 
       <div className="card mb-4">
         <h2 className="mb-1 font-semibold">📣 Send an announcement</h2>
         <p className="mb-3 text-xs text-slate-500">
-          Everyone sees this at the top of the leaderboard and their teams page. It appears for
-          them within a minute (the pages refresh themselves). {playerCount} players · {paidCount}{" "}
-          paid.
+          Everyone sees this at the top of the leaderboard. It appears for them within a minute (the
+          pages refresh themselves).
         </p>
         <form action={postAnnouncement.bind(null, slug)} className="space-y-2">
           <textarea
@@ -106,3 +156,13 @@ export default async function AdminHub({
     </main>
   );
 }
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-slate-50 p-3">
+      <p className="text-xs text-slate-500">{label}</p>
+      <p className="text-lg font-bold">{value}</p>
+    </div>
+  );
+}
+
