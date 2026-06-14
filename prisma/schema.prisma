@@ -10,6 +10,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Single-row tracker for throttling the automatic results sync.
+model SyncState {
+  id         String    @id @default("global")
+  lastSyncAt DateTime?
+  syncing    Boolean   @default(false)
+}
+
 // A single sweepstake pool (one family game).
 model Pool {
   id               String        @id @default(cuid())

@@ -149,3 +149,50 @@ export async function syncFromFootballData(): Promise<SyncResult> {
 
   return { ok: true, created, updated, skipped };
 }
+
+// How stale results may get before a page view triggers a fresh sync.
+const AUTO_SYNC_INTERVAL_MS = 120_000; // 2 minutes
+// Safety valve: if a previous sync set `syncing` and never cleared it (crash),
+// let another run reclaim the lock after this long.
+const SYNC_LOCK_TIMEOUT_MS = 60_000;
+
+// Called (via `after()`) when players view the app. Runs a real sync at most
+// once every couple of minutes, guarded by a DB lock so concurrent viewers
+// don't all hit the API. No-op when no token is configured.
+export async function maybeAutoSync(): Promise<void> {
+  if (!process.env.FOOTBALL_DATA_API_TOKEN) return;
+
+  const now = Date.now();
+  const fresh = new Date(now - AUTO_SYNC_INTERVAL_MS);
+  const lockExpiry = new Date(now - SYNC_LOCK_TIMEOUT_MS);
+
+  // Ensure the single row exists.
+  await prisma.syncState.upsert({
+    where: { id: "global" },
+    update: {},
+    create: { id: "global" },
+  });
+
+  // Atomically claim the lock: only proceed if it's been long enough since the
+  // last sync AND nobody else is currently syncing (or their lock is stale).
+  const claimed = await prisma.syncState.updateMany({
+    where: {
+      id: "global",
+      OR: [{ syncing: false }, { lastSyncAt: { lt: lockExpiry } }],
+      AND: [{ OR: [{ lastSyncAt: null }, { lastSyncAt: { lt: fresh } }] }],
+    },
+    data: { syncing: true },
+  });
+  if (claimed.count === 0) return; // too soon, or another viewer is syncing
+
+  try {
+    await syncFromFootballData();
+  } catch {
+    // ignore — manual sync / next view will retry
+  } finally {
+    await prisma.syncState.update({
+      where: { id: "global" },
+      data: { syncing: false, lastSyncAt: new Date() },
+    });
+  }
+}

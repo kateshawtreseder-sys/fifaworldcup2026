@@ -1,13 +1,16 @@
 import Link from "next/link";
+import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getPoolContext, getCurrentParticipant } from "@/lib/loaders";
-import { formatMoney, externalUrl, furthestStageLabel } from "@/lib/format";
+import { formatMoney, externalUrl, furthestStageLabel, STAGE_LABELS } from "@/lib/format";
 import { buildLeaderboard, parseScoring } from "@/lib/scoring";
 import { inviteUrl } from "@/lib/share";
+import { maybeAutoSync } from "@/lib/football-data";
 import { PoolNav } from "@/components/PoolNav";
 import { CopyButton } from "@/components/CopyButton";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { Announcements } from "@/components/Announcements";
+import { BurgerMenu } from "@/components/BurgerMenu";
 import { LeaderboardView, type PlayerRow } from "@/components/LeaderboardView";
 import {
   adminLogin,
@@ -115,7 +118,8 @@ export default async function PoolHome({
     );
   }
 
-  // ---------- Player view: leaderboard → your teams → log out / organiser ----------
+  // ---------- Player view: leaderboard → latest results → log out / organiser ----------
+  after(() => maybeAutoSync()); // keep scores fresh while anyone's watching
   const me = await getCurrentParticipant(slug, pool.id);
   const [participants, assignments, matches, teams, announcements] = await Promise.all([
     prisma.participant.findMany({ where: { poolId: pool.id } }),
@@ -151,17 +155,84 @@ export default async function PoolHome({
   }));
 
   const drawn = pool.status !== "open";
-  const myStanding = me ? standings.find((s) => s.participantId === me.id) : null;
-  const rank = me ? standings.findIndex((s) => s.participantId === me.id) + 1 : 0;
   const stake = formatMoney(pool.stakeAmount, pool.currency);
+
+  // Most-recently-updated finished matches, to show under the leaderboard.
+  const recent = matches
+    .filter((m) => m.status === "finished")
+    .sort((a, b) => +b.updatedAt - +a.updatedAt)
+    .slice(0, 8);
 
   return (
     <main>
-      <PoolNav slug={slug} name={pool.name} isAdmin={false} />
+      {/* Header: title + burger menu */}
+      <header className="mb-6 flex items-center justify-between border-b border-slate-200 pb-4">
+        <Link href={`/${slug}`} className="text-xl font-extrabold brand-gradient">
+          ⚽ {pool.name}
+        </Link>
+        <BurgerMenu>
+          <Link href={`/${slug}/me`} className="block px-4 py-3 text-sm hover:bg-slate-50">
+            👤 My teams
+          </Link>
+          <Link href={`/${slug}/all-teams`} className="block border-t border-slate-100 px-4 py-3 text-sm hover:bg-slate-50">
+            👥 All teams
+          </Link>
+          {me && (
+            <form action={participantLogout.bind(null, slug)} className="border-t border-slate-100">
+              <button className="block w-full px-4 py-3 text-left text-sm hover:bg-slate-50">
+                🚪 Log out
+              </button>
+            </form>
+          )}
+        </BurgerMenu>
+      </header>
+
       <AutoRefresh seconds={60} />
       <Announcements items={announcements} />
 
-      {/* Leaderboard first */}
+      {/* Not-logged-in prompt */}
+      {!me && (
+        <div className="card mb-4 text-center">
+          <p className="text-sm text-slate-600">Log in to see your teams and pay your stake.</p>
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            <Link href={`/${slug}/login`} className="btn-primary">
+              Log in →
+            </Link>
+            {pool.status === "open" && (
+              <Link href={`/join/${pool.inviteToken}`} className="btn-secondary">
+                Create an account
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Slim pay reminder for a logged-in, unpaid player */}
+      {me && !me.paid && (
+        <div className="card mb-4 border-amber-200 bg-amber-50">
+          {me.paidClaimed ? (
+            <p className="text-sm text-blue-800">
+              ✋ You&apos;ve marked your {stake} stake as paid — waiting for the organiser to confirm.
+            </p>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="flex-1 text-sm font-medium text-amber-900">
+                Your {stake} stake isn&apos;t paid yet.
+              </p>
+              {pool.paymentLink && (
+                <a href={externalUrl(pool.paymentLink)} target="_blank" rel="noopener noreferrer" className="btn-primary">
+                  💳 Pay {stake}
+                </a>
+              )}
+              <form action={claimPaid.bind(null, slug)}>
+                <button className="btn-secondary">I&apos;ve paid ✓</button>
+              </form>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Leaderboard */}
       <h1 className="mb-1 text-xl font-bold">🏆 Leaderboard</h1>
       <p className="mb-4 text-xs text-slate-500">Tap a player to see how their teams are doing.</p>
       {drawn ? (
@@ -172,96 +243,28 @@ export default async function PoolHome({
         </div>
       )}
 
-      {/* Your teams */}
-      <section className="mt-8">
-        <h2 className="mb-3 text-lg font-bold">👤 Your teams</h2>
-        {!me ? (
-          <div className="card text-center">
-            <p className="text-sm text-slate-600">Log in to see your teams.</p>
-            <div className="mt-3 flex flex-wrap justify-center gap-2">
-              <Link href={`/${slug}/login`} className="btn-primary">
-                Log in →
-              </Link>
-              {pool.status === "open" && (
-                <Link href={`/join/${pool.inviteToken}`} className="btn-secondary">
-                  Create an account
-                </Link>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="card">
-            <p className="font-semibold">Hi {me.name} 👋</p>
-
-            {me.paid ? (
-              <p className="mt-2">
-                <span className="rounded-full bg-pitch-100 px-3 py-1 text-sm font-semibold text-pitch-800">
-                  Stake paid ✓
+      {/* Latest results — so it's clear why the leaderboard moved */}
+      {recent.length > 0 && (
+        <section className="mt-6">
+          <h2 className="mb-2 text-sm font-semibold text-slate-600">Latest results</h2>
+          <ul className="space-y-1 text-sm">
+            {recent.map((m) => (
+              <li key={m.id} className="flex justify-between rounded bg-white px-3 py-2 shadow-sm">
+                <span>
+                  {teamById.get(m.homeTeamId ?? "")?.flagEmoji}{" "}
+                  {teamById.get(m.homeTeamId ?? "")?.name} {m.homeScore}–{m.awayScore}{" "}
+                  {teamById.get(m.awayTeamId ?? "")?.name}{" "}
+                  {teamById.get(m.awayTeamId ?? "")?.flagEmoji}
                 </span>
-              </p>
-            ) : me.paidClaimed ? (
-              <p className="mt-2 text-sm text-blue-800">
-                ✋ You&apos;ve marked your {stake} stake as paid — waiting for the organiser to confirm.
-              </p>
-            ) : (
-              <div className="mt-2 rounded-lg bg-amber-50 p-3">
-                <p className="text-sm font-medium text-amber-900">Your {stake} stake isn&apos;t paid yet.</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {pool.paymentLink && (
-                    <a href={externalUrl(pool.paymentLink)} target="_blank" rel="noopener noreferrer" className="btn-primary">
-                      💳 Pay {stake} now
-                    </a>
-                  )}
-                  <form action={claimPaid.bind(null, slug)}>
-                    <button className="btn-secondary">I&apos;ve paid ✓</button>
-                  </form>
-                </div>
-              </div>
-            )}
+                <span className="text-xs text-slate-400">{STAGE_LABELS[m.stage] ?? m.stage}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
-            {drawn && myStanding ? (
-              <>
-                <p className="mt-4 text-sm text-slate-500">
-                  Rank #{rank} · {myStanding.points} pts
-                </p>
-                <ul className="mt-2 space-y-2">
-                  {[...myStanding.teams]
-                    .sort((a, b) => b.points - a.points)
-                    .map((t) => {
-                      const team = teamById.get(t.teamId);
-                      return (
-                        <li
-                          key={t.teamId}
-                          className={`flex items-center justify-between rounded bg-slate-50 px-3 py-2 text-sm ${
-                            t.eliminated ? "text-slate-400 line-through" : ""
-                          }`}
-                        >
-                          <span>
-                            {team?.flagEmoji} {team?.name}
-                            {t.champion && <span className="ml-1">🏆</span>}
-                          </span>
-                          <span className="font-semibold">{t.points} pts</span>
-                        </li>
-                      );
-                    })}
-                </ul>
-              </>
-            ) : (
-              <p className="mt-3 text-sm text-slate-500">
-                You&apos;re in! Your teams will appear here once the draw is done.
-              </p>
-            )}
-          </div>
-        )}
-      </section>
-
-      {/* Log out / organiser sign in */}
+      {/* Organiser sign in (discreet) */}
       <footer className="mt-8 border-t border-slate-200 pt-4">
-        {me && (
-          <form action={participantLogout.bind(null, slug)} className="mb-3">
-            <button className="btn-secondary">Log out</button>
-          </form>
-        )}
         <details className="text-sm" open={error === "badpass"}>
           <summary className="cursor-pointer text-slate-500">Organiser sign in</summary>
           <div className="mt-3 card">

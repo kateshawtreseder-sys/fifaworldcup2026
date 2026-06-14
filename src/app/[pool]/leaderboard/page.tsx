@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getPoolContext, getCurrentParticipant } from "@/lib/loaders";
 import { buildLeaderboard, parseScoring } from "@/lib/scoring";
 import { STAGE_LABELS } from "@/lib/format";
+import { maybeAutoSync } from "@/lib/football-data";
 import { PoolNav } from "@/components/PoolNav";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { Announcements } from "@/components/Announcements";
@@ -34,6 +36,7 @@ export default async function LeaderboardPage({
   const { pool, admin } = await getPoolContext(slug);
   // Players get the single-scroll hub (leaderboard + teams) on the main page.
   if (!admin) redirect(`/${slug}`);
+  after(() => maybeAutoSync());
   const me = await getCurrentParticipant(slug, pool.id);
 
   const [participants, assignments, matches, teams, announcements] = await Promise.all([

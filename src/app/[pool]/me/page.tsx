@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getPoolContext, getCurrentParticipant } from "@/lib/loaders";
 import { buildLeaderboard, parseScoring } from "@/lib/scoring";
 import { formatMoney, externalUrl } from "@/lib/format";
+import { maybeAutoSync } from "@/lib/football-data";
 import { PoolNav } from "@/components/PoolNav";
 import { Announcements } from "@/components/Announcements";
 import { AutoRefresh } from "@/components/AutoRefresh";
@@ -18,8 +19,7 @@ export default async function MePage({
 }) {
   const { pool: slug } = await params;
   const { pool, admin } = await getPoolContext(slug);
-  // Players get the single-scroll hub (leaderboard + teams) on the main page.
-  if (!admin) redirect(`/${slug}`);
+  after(() => maybeAutoSync());
   const me = await getCurrentParticipant(slug, pool.id);
 
   if (!me) {
