@@ -201,7 +201,7 @@ export default async function PoolHome({
                   >
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-sm font-semibold text-slate-600 [&::-webkit-details-marker]:hidden">
                       <span className="flex items-center gap-2">
-                        <span className="chevron text-slate-400">▸</span>
+                        <span className="chevron text-lg font-bold text-pitch-700">▶</span>
                         {group.date}
                       </span>
                       <span className="text-xs font-normal text-slate-400">
