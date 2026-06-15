@@ -199,8 +199,11 @@ export default async function PoolHome({
                     open={i === 0}
                     className="overflow-hidden rounded-lg border border-slate-200 bg-white"
                   >
-                    <summary className="flex cursor-pointer items-center justify-between px-3 py-2 text-sm font-semibold text-slate-600">
-                      <span>{group.date}</span>
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-sm font-semibold text-slate-600 [&::-webkit-details-marker]:hidden">
+                      <span className="flex items-center gap-2">
+                        <span className="chevron text-slate-400">▸</span>
+                        {group.date}
+                      </span>
                       <span className="text-xs font-normal text-slate-400">
                         {group.items.length} game{group.items.length === 1 ? "" : "s"}
                       </span>

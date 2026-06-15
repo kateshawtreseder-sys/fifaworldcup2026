@@ -35,3 +35,12 @@ body {
     @apply bg-gradient-to-r from-pitch-700 via-blue-600 to-red-600 bg-clip-text text-transparent;
   }
 }
+
+/* Rotating chevron for collapsible <details> date bars */
+.chevron {
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+details[open] > summary .chevron {
+  transform: rotate(90deg);
+}
