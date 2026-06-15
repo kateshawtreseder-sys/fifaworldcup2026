@@ -1,5 +1,6 @@
 import { STAGE_LABELS } from "@/lib/format";
 import { pointsForTeamInMatch, type TeamBreakdown, type ScoringConfig } from "@/lib/scoring";
+import { TeamName } from "@/components/TeamName";
 
 const STAGE_ORDER: Record<string, number> = { group: 0, R32: 1, R16: 2, QF: 3, SF: 4, final: 5 };
 
@@ -33,11 +34,13 @@ export function TeamFixtures({
   matches,
   teamById,
   cfg,
+  ownerByTeam,
 }: {
   teams: TeamBreakdown[];
   matches: MatchLite[];
   teamById: Map<string, { flagEmoji: string; name: string }>;
   cfg: ScoringConfig;
+  ownerByTeam: Map<string, string>;
 }) {
   return (
     <div className="space-y-4">
@@ -56,7 +59,7 @@ export function TeamFixtures({
             <div key={bd.teamId} className={`card ${bd.eliminated ? "opacity-70" : ""}`}>
               <div className="mb-2 flex items-center justify-between">
                 <p className="font-semibold">
-                  {team?.flagEmoji} {team?.name}
+                  <TeamName flag={team?.flagEmoji} name={team?.name} owner={ownerByTeam.get(bd.teamId)} />
                   {bd.champion && <span className="ml-1">🏆</span>}
                   {bd.eliminated && <span className="ml-2 text-xs font-normal text-slate-400">out</span>}
                 </p>
@@ -85,7 +88,12 @@ export function TeamFixtures({
                             <span className="text-xs text-slate-400">
                               {STAGE_LABELS[m.stage] ?? m.stage} ·{" "}
                             </span>
-                            vs {opp?.flagEmoji} {opp?.name ?? "TBC"}
+                            vs{" "}
+                            <TeamName
+                              flag={opp?.flagEmoji}
+                              name={opp?.name}
+                              owner={ownerByTeam.get((isHome ? m.awayTeamId : m.homeTeamId) ?? "")}
+                            />
                           </p>
                           {!finished && !live && (
                             <p className="text-xs text-slate-500">

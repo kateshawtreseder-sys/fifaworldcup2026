@@ -30,6 +30,10 @@ export default async function AllTeamsPage({
 
   const standings = buildLeaderboard({ participants, assignments, matches, cfg });
 
+  const nameById = new Map(participants.map((p) => [p.id, p.name]));
+  const ownerByTeam = new Map<string, string>();
+  for (const a of assignments) ownerByTeam.set(a.teamId, nameById.get(a.participantId) ?? "");
+
   const drawn = pool.status !== "open";
 
   return (
@@ -72,7 +76,7 @@ export default async function AllTeamsPage({
                   <span className="shrink-0 text-sm font-bold text-pitch-800">{s.points} pts</span>
                 </summary>
                 <div className="border-t border-slate-100 bg-slate-50/50 p-3">
-                  <TeamFixtures teams={s.teams} matches={matches} teamById={teamById} cfg={cfg} />
+                  <TeamFixtures teams={s.teams} matches={matches} teamById={teamById} cfg={cfg} ownerByTeam={ownerByTeam} />
                 </div>
               </details>
             </li>

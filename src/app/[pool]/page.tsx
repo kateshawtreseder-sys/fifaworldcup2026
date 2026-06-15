@@ -10,6 +10,7 @@ import { AutoRefresh } from "@/components/AutoRefresh";
 import { Announcements } from "@/components/Announcements";
 import { BurgerMenu } from "@/components/BurgerMenu";
 import { Tabs } from "@/components/Tabs";
+import { TeamName } from "@/components/TeamName";
 import { LeaderboardView, type PlayerRow } from "@/components/LeaderboardView";
 import { claimPaid } from "../actions";
 
@@ -50,6 +51,10 @@ export default async function PoolHome({
   ]);
   const teamById = new Map(teams.map((t) => [t.id, t]));
   const cfg = parseScoring(pool.scoringConfig);
+
+  const nameById = new Map(participants.map((p) => [p.id, p.name]));
+  const ownerByTeam = new Map<string, string>();
+  for (const a of assignments) ownerByTeam.set(a.teamId, nameById.get(a.participantId) ?? "");
 
   const standings = buildLeaderboard({ participants, assignments, matches, cfg });
   const rows: PlayerRow[] = standings.map((s) => ({
@@ -204,11 +209,18 @@ export default async function PoolHome({
                     <ul className="space-y-1 border-t border-slate-100 px-3 py-2 text-sm">
                       {group.items.map((m) => (
                         <li key={m.id} className="flex justify-between gap-2">
-                          <span>
-                            {teamById.get(m.homeTeamId ?? "")?.flagEmoji}{" "}
-                            {teamById.get(m.homeTeamId ?? "")?.name} {m.homeScore}–{m.awayScore}{" "}
-                            {teamById.get(m.awayTeamId ?? "")?.name}{" "}
-                            {teamById.get(m.awayTeamId ?? "")?.flagEmoji}
+                          <span className="flex flex-wrap items-center gap-x-1">
+                            <TeamName
+                              flag={teamById.get(m.homeTeamId ?? "")?.flagEmoji}
+                              name={teamById.get(m.homeTeamId ?? "")?.name}
+                              owner={ownerByTeam.get(m.homeTeamId ?? "")}
+                            />
+                            <span className="font-medium">{m.homeScore}–{m.awayScore}</span>
+                            <TeamName
+                              flag={teamById.get(m.awayTeamId ?? "")?.flagEmoji}
+                              name={teamById.get(m.awayTeamId ?? "")?.name}
+                              owner={ownerByTeam.get(m.awayTeamId ?? "")}
+                            />
                           </span>
                           <span className="shrink-0 text-xs text-slate-400">
                             {STAGE_LABELS[m.stage] ?? m.stage}
@@ -233,11 +245,18 @@ export default async function PoolHome({
                           key={m.id}
                           className="flex items-center justify-between gap-2 rounded bg-white px-3 py-2 shadow-sm"
                         >
-                          <span>
-                            {teamById.get(m.homeTeamId ?? "")?.flagEmoji}{" "}
-                            {teamById.get(m.homeTeamId ?? "")?.name} v{" "}
-                            {teamById.get(m.awayTeamId ?? "")?.name}{" "}
-                            {teamById.get(m.awayTeamId ?? "")?.flagEmoji}
+                          <span className="flex flex-wrap items-center gap-x-1">
+                            <TeamName
+                              flag={teamById.get(m.homeTeamId ?? "")?.flagEmoji}
+                              name={teamById.get(m.homeTeamId ?? "")?.name}
+                              owner={ownerByTeam.get(m.homeTeamId ?? "")}
+                            />
+                            <span>v</span>
+                            <TeamName
+                              flag={teamById.get(m.awayTeamId ?? "")?.flagEmoji}
+                              name={teamById.get(m.awayTeamId ?? "")?.name}
+                              owner={ownerByTeam.get(m.awayTeamId ?? "")}
+                            />
                           </span>
                           <span className="shrink-0 text-xs text-slate-500">
                             {kickoffTimeFmt.format(m.kickoff!)}

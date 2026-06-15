@@ -64,6 +64,10 @@ export default async function MePage({
   const cfg = parseScoring(pool.scoringConfig);
   const standings = buildLeaderboard({ participants, assignments, matches, cfg });
   const myStanding = standings.find((s) => s.participantId === me.id);
+
+  const nameById = new Map(participants.map((p) => [p.id, p.name]));
+  const ownerByTeam = new Map<string, string>();
+  for (const a of assignments) ownerByTeam.set(a.teamId, nameById.get(a.participantId) ?? "");
   const rank = standings.findIndex((s) => s.participantId === me.id) + 1;
 
   const stake = formatMoney(pool.stakeAmount, pool.currency);
@@ -148,7 +152,7 @@ export default async function MePage({
               Rank #{rank} · {myStanding.points} pts
             </span>
           </div>
-          <TeamFixtures teams={myStanding.teams} matches={matches} teamById={teamById} cfg={cfg} />
+          <TeamFixtures teams={myStanding.teams} matches={matches} teamById={teamById} cfg={cfg} ownerByTeam={ownerByTeam} />
         </>
       ) : null}
     </main>
