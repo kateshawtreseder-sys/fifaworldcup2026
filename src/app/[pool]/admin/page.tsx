@@ -110,6 +110,20 @@ export default async function AdminHub({
               />
             </div>
           </div>
+          <div>
+            <label className="label">Organiser email</label>
+            <input
+              name="organiserEmail"
+              type="email"
+              defaultValue={pool.adminEmail ?? ""}
+              placeholder="you@example.com"
+              className="input"
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              This is the one email that gets organiser access (with your password). Change it to
+              hand organiser duties to a different email.
+            </p>
+          </div>
           <button className="btn-primary">Save settings</button>
         </form>
       </div>

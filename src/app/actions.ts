@@ -74,14 +74,17 @@ export async function updatePoolSettings(slug: string, formData: FormData) {
   const pool = await requireAdmin(slug);
   const stakePounds = Number(formData.get("stake") ?? 0);
   const paymentLink = externalUrl(String(formData.get("paymentLink") ?? "")) || null;
+  const organiserEmail = String(formData.get("organiserEmail") ?? "").trim().toLowerCase();
   await prisma.pool.update({
     where: { id: pool.id },
     data: {
       paymentLink,
       ...(stakePounds > 0 ? { stakeAmount: Math.round(stakePounds * 100) } : {}),
+      ...(organiserEmail ? { adminEmail: organiserEmail } : {}),
     },
   });
   revalidatePath(`/${slug}`);
+  revalidatePath(`/${slug}/admin`);
   revalidatePath(`/${slug}/participants`);
 }
 
