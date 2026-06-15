@@ -127,6 +127,31 @@ export function pointsForTeam(
   };
 }
 
+// Points a single match contributes to a team (consistent with pointsForTeam:
+// summing this over all a team's matches equals their total). Knockout "reach"
+// bonus is credited as soon as the team appears in that round's match (even
+// before kick-off); goals and win/draw count only once finished.
+export function pointsForTeamInMatch(teamId: string, m: ScoringMatch, cfg: ScoringConfig): number {
+  const isHome = m.homeTeamId === teamId;
+  const isAway = m.awayTeamId === teamId;
+  if (!isHome && !isAway) return 0;
+
+  let pts = 0;
+  if (m.stage in STAGE_BONUS) pts += cfg[STAGE_BONUS[m.stage]];
+
+  if (m.status === "finished") {
+    const scored = (isHome ? m.homeScore : m.awayScore) ?? 0;
+    const conceded = (isHome ? m.awayScore : m.homeScore) ?? 0;
+    pts += scored * cfg.perGoal;
+    if (m.stage === "group") {
+      if (scored > conceded) pts += cfg.groupWin;
+      else if (scored === conceded) pts += cfg.groupDraw;
+    }
+    if (m.stage === "final" && m.winnerTeamId === teamId) pts += cfg.champion;
+  }
+  return pts;
+}
+
 export type ParticipantStanding = {
   participantId: string;
   name: string;
