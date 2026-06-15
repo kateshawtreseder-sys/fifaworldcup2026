@@ -28,11 +28,17 @@ export default async function ResultsPage({
     prisma.team.findMany({ orderBy: { name: "asc" } }),
   ]);
 
-  const byStage = new Map<string, typeof matches>();
-  for (const m of matches) {
-    const list = byStage.get(m.stage) ?? [];
-    list.push(m);
-    byStage.set(m.stage, list);
+  // Only unplayed games get editable rows; finished games go in a compact,
+  // expandable "played" list.
+  const unplayed = matches.filter((mm) => mm.status !== "finished");
+  const played = matches
+    .filter((mm) => mm.status === "finished")
+    .sort((a, b) => +(b.kickoff ?? b.updatedAt) - +(a.kickoff ?? a.updatedAt));
+  const unplayedByStage = new Map<string, typeof matches>();
+  for (const mm of unplayed) {
+    const list = unplayedByStage.get(mm.stage) ?? [];
+    list.push(mm);
+    unplayedByStage.set(mm.stage, list);
   }
 
   const hasToken = !!process.env.FOOTBALL_DATA_API_TOKEN;
@@ -146,48 +152,91 @@ export default async function ResultsPage({
       </details>
       )}
 
-      {STAGE_ORDER.filter((s) => byStage.has(s)).map((stage) => (
+      {/* Games still to be played — editable */}
+      {STAGE_ORDER.filter((s) => unplayedByStage.has(s)).map((stage) => (
         <section key={stage} className="mb-6">
           <h2 className="mb-2 text-sm font-semibold text-slate-600">
-            {STAGE_LABELS[stage] ?? stage}
+            {STAGE_LABELS[stage] ?? stage} — to play
           </h2>
           <div className="space-y-2">
-            {byStage.get(stage)!.map((m) => (
-              <form
-                key={m.id}
-                action={saveResult.bind(null, slug)}
-                className="card flex items-center gap-2 py-2 text-sm"
-              >
-                <input type="hidden" name="matchId" value={m.id} />
-                <span className="flex-1 text-right">
-                  {m.homeTeam?.flagEmoji} {m.homeTeam?.name ?? "TBD"}
-                </span>
-                <input
-                  name="homeScore"
-                  type="number"
-                  min="0"
-                  defaultValue={m.homeScore ?? ""}
-                  className="w-14 rounded border border-slate-300 px-2 py-1 text-center"
-                />
-                <span>–</span>
-                <input
-                  name="awayScore"
-                  type="number"
-                  min="0"
-                  defaultValue={m.awayScore ?? ""}
-                  className="w-14 rounded border border-slate-300 px-2 py-1 text-center"
-                />
-                <span className="flex-1">
-                  {m.awayTeam?.name ?? "TBD"} {m.awayTeam?.flagEmoji}
-                </span>
-                <button className="btn-secondary shrink-0">
-                  {m.status === "finished" ? "Update" : "Save"}
-                </button>
-              </form>
+            {unplayedByStage.get(stage)!.map((m) => (
+              <div key={m.id} className="card py-2">
+                <EditRow m={m} slug={slug} />
+              </div>
             ))}
           </div>
         </section>
       ))}
+
+      {/* Played games — compact read-only, tap to expand & edit */}
+      {played.length > 0 && (
+        <section className="mb-6">
+          <h2 className="mb-2 text-sm font-semibold text-slate-600">
+            Played games ({played.length})
+          </h2>
+          <div className="space-y-1">
+            {played.map((m) => (
+              <details key={m.id} className="rounded bg-white px-3 py-2 text-sm shadow-sm">
+                <summary className="flex cursor-pointer items-center justify-between gap-2">
+                  <span>
+                    {m.homeTeam?.flagEmoji} {m.homeTeam?.name} {m.homeScore}–{m.awayScore}{" "}
+                    {m.awayTeam?.name} {m.awayTeam?.flagEmoji}
+                  </span>
+                  <span className="text-xs text-slate-400">{STAGE_LABELS[m.stage] ?? m.stage}</span>
+                </summary>
+                <div className="mt-2 border-t border-slate-100 pt-2">
+                  <EditRow m={m} slug={slug} />
+                </div>
+              </details>
+            ))}
+          </div>
+        </section>
+      )}
     </main>
+  );
+}
+
+function EditRow({
+  m,
+  slug,
+}: {
+  m: {
+    id: string;
+    homeTeam: { flagEmoji: string; name: string } | null;
+    awayTeam: { flagEmoji: string; name: string } | null;
+    homeScore: number | null;
+    awayScore: number | null;
+    status: string;
+  };
+  slug: string;
+}) {
+  return (
+    <form action={saveResult.bind(null, slug)} className="flex items-center gap-2 text-sm">
+      <input type="hidden" name="matchId" value={m.id} />
+      <span className="flex-1 text-right">
+        {m.homeTeam?.flagEmoji} {m.homeTeam?.name ?? "TBD"}
+      </span>
+      <input
+        name="homeScore"
+        type="number"
+        min="0"
+        defaultValue={m.homeScore ?? ""}
+        className="w-14 rounded border border-slate-300 px-2 py-1 text-center"
+      />
+      <span>–</span>
+      <input
+        name="awayScore"
+        type="number"
+        min="0"
+        defaultValue={m.awayScore ?? ""}
+        className="w-14 rounded border border-slate-300 px-2 py-1 text-center"
+      />
+      <span className="flex-1">
+        {m.awayTeam?.name ?? "TBD"} {m.awayTeam?.flagEmoji}
+      </span>
+      <SubmitButton className="btn-secondary shrink-0" pendingText="Saving…">
+        {m.status === "finished" ? "Update" : "Save"}
+      </SubmitButton>
+    </form>
   );
 }
