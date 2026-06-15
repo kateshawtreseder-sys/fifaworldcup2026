@@ -20,6 +20,7 @@ const kickoffFmt = new Intl.DateTimeFormat("en-GB", {
   hour: "2-digit",
   minute: "2-digit",
   timeZone: "Europe/London",
+  timeZoneName: "short", // appends "BST" (or "GMT")
 });
 
 export default async function MePage({

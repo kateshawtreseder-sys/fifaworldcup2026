@@ -14,6 +14,13 @@ import { claimPaid, participantLogout } from "../actions";
 
 export const dynamic = "force-dynamic";
 
+const resultDateFmt = new Intl.DateTimeFormat("en-GB", {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  timeZone: "Europe/London",
+});
+
 export default async function PoolHome({
   params,
 }: {
@@ -63,6 +70,7 @@ export default async function PoolHome({
     .filter((m) => m.status === "finished")
     .sort((a, b) => +b.updatedAt - +a.updatedAt)
     .slice(0, 8);
+  const latestResultDate = recent[0] ? recent[0].kickoff ?? recent[0].updatedAt : null;
 
   return (
     <main>
@@ -154,7 +162,9 @@ export default async function PoolHome({
       {/* Latest results — so it's clear why the leaderboard moved */}
       {recent.length > 0 && (
         <section className="mt-6">
-          <h2 className="mb-2 text-sm font-semibold text-slate-600">Latest results</h2>
+          <h2 className="mb-2 text-sm font-semibold text-slate-600">
+            Latest results{latestResultDate ? ` · from ${resultDateFmt.format(latestResultDate)}` : ""}
+          </h2>
           <ul className="space-y-1 text-sm">
             {recent.map((m) => (
               <li key={m.id} className="flex justify-between rounded bg-white px-3 py-2 shadow-sm">
