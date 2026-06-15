@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getPoolContext } from "@/lib/loaders";
 import { STAGE_LABELS } from "@/lib/format";
 import { PoolNav } from "@/components/PoolNav";
+import { SubmitButton } from "@/components/SubmitButton";
 import { saveResult, createKnockoutMatch, syncNow, loadTeams, loadFixtureDates } from "../../../actions";
 
 const STAGE_ORDER = ["group", "R32", "R16", "QF", "SF", "final"];
@@ -52,9 +53,9 @@ export default async function ResultsPage({
           tournament starts.
         </p>
         <form action={loadTeams.bind(null, slug)} className="mt-3">
-          <button className="btn-primary">
+          <SubmitButton className="btn-primary" pendingText="Loading teams…">
             {teams.length === 0 ? "Load the 48 teams & fixtures" : "Reload official teams & fixtures"}
-          </button>
+          </SubmitButton>
         </form>
       </div>
 
@@ -66,7 +67,9 @@ export default async function ResultsPage({
             Safe to run any time — it doesn&apos;t change teams, the draw or any scores.
           </p>
           <form action={loadFixtureDates.bind(null, slug)} className="mt-3">
-            <button className="btn-secondary">📅 Load fixture dates &amp; times</button>
+            <SubmitButton className="btn-secondary" pendingText="Loading dates…">
+              📅 Load fixture dates &amp; times
+            </SubmitButton>
           </form>
         </div>
       )}
@@ -105,9 +108,9 @@ export default async function ResultsPage({
           </p>
         </div>
         <form action={syncNow.bind(null, slug)}>
-          <button className="btn-primary" disabled={!hasToken} title={hasToken ? "" : "Set FOOTBALL_DATA_API_TOKEN to enable"}>
+          <SubmitButton className="btn-primary" pendingText="Syncing…" disabled={!hasToken} title={hasToken ? "" : "Set FOOTBALL_DATA_API_TOKEN to enable"}>
             ⟳ Sync now
-          </button>
+          </SubmitButton>
         </form>
       </div>
 
