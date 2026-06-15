@@ -146,9 +146,9 @@ export default async function PoolHome({
 
       {/* Leaderboard */}
       <h1 className="mb-1 text-xl font-bold">🏆 Leaderboard</h1>
-      <p className="mb-4 text-xs text-slate-500">Tap a player to see how their teams are doing.</p>
+      <p className="mb-4 text-xs text-slate-500">See everyone&apos;s teams on the All teams page.</p>
       {drawn ? (
-        <LeaderboardView rows={rows} />
+        <LeaderboardView rows={rows} compact />
       ) : (
         <div className="card text-center text-sm text-slate-500">
           The teams haven&apos;t been drawn yet. Scores appear here once the organiser runs the draw.

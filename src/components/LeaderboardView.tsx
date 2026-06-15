@@ -21,7 +21,7 @@ export type PlayerRow = {
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
-export function LeaderboardView({ rows }: { rows: PlayerRow[] }) {
+export function LeaderboardView({ rows, compact = false }: { rows: PlayerRow[]; compact?: boolean }) {
   if (rows.length === 0) {
     return (
       <div className="card text-center text-sm text-slate-500">No players yet.</div>
@@ -65,11 +65,43 @@ export function LeaderboardView({ rows }: { rows: PlayerRow[] }) {
 
       {/* Full list */}
       <ol className="space-y-2">
-        {rows.map((r, i) => (
-          <Row key={r.participantId} row={r} rank={i + 1} gap={leader.points - r.points} />
-        ))}
+        {rows.map((r, i) =>
+          compact ? (
+            <CompactRow key={r.participantId} row={r} rank={i + 1} gap={leader.points - r.points} />
+          ) : (
+            <Row key={r.participantId} row={r} rank={i + 1} gap={leader.points - r.points} />
+          )
+        )}
       </ol>
     </div>
+  );
+}
+
+// Ranking-only row (name + points) — used on the home page. Full team detail
+// lives on the All teams page.
+function CompactRow({ row, rank, gap }: { row: PlayerRow; rank: number; gap: number }) {
+  return (
+    <li
+      className={`card flex items-center justify-between gap-3 py-3 ${
+        row.isMe ? "ring-2 ring-pitch-600" : ""
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <span className="w-7 text-center text-lg font-bold text-slate-500">
+          {rank <= 3 ? MEDALS[rank - 1] : rank}
+        </span>
+        <div>
+          <p className="font-semibold">
+            {row.name}
+            {row.isMe && <span className="ml-2 text-xs text-pitch-700">(you)</span>}
+          </p>
+          {rank > 1 && gap > 0 && (
+            <p className="text-xs text-slate-400">{gap} behind leader</p>
+          )}
+        </div>
+      </div>
+      <span className="text-xl font-bold text-pitch-800">{row.points}</span>
+    </li>
   );
 }
 
