@@ -96,7 +96,7 @@ export async function adminLogin(slug: string, formData: FormData) {
   // Older pools have no admin email — fall back to password-only for them.
   const emailOk = !pool.adminEmail || pool.adminEmail === email;
   if (!passwordOk || !emailOk) {
-    redirect(`/${slug}?error=badpass`);
+    redirect(`/${slug}/organiser?error=badpass`);
   }
   await grantAdmin(slug, pool.id);
   redirect(`/${slug}`);

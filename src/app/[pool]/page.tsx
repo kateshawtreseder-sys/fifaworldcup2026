@@ -10,19 +10,16 @@ import { AutoRefresh } from "@/components/AutoRefresh";
 import { Announcements } from "@/components/Announcements";
 import { BurgerMenu } from "@/components/BurgerMenu";
 import { LeaderboardView, type PlayerRow } from "@/components/LeaderboardView";
-import { adminLogin, claimPaid, participantLogout } from "../actions";
+import { claimPaid, participantLogout } from "../actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function PoolHome({
   params,
-  searchParams,
 }: {
   params: Promise<{ pool: string }>;
-  searchParams: Promise<{ error?: string }>;
 }) {
   const { pool: slug } = await params;
-  const { error } = await searchParams;
   const { pool, admin } = await getPoolContext(slug);
 
   // Keep scores fresh while anyone's watching.
@@ -37,13 +34,9 @@ export default async function PoolHome({
     prisma.announcement.findMany({ where: { poolId: pool.id }, orderBy: { createdAt: "desc" }, take: 3 }),
   ]);
   const teamById = new Map(teams.map((t) => [t.id, t]));
+  const cfg = parseScoring(pool.scoringConfig);
 
-  const standings = buildLeaderboard({
-    participants,
-    assignments,
-    matches,
-    cfg: parseScoring(pool.scoringConfig),
-  });
+  const standings = buildLeaderboard({ participants, assignments, matches, cfg });
   const rows: PlayerRow[] = standings.map((s) => ({
     participantId: s.participantId,
     name: s.name,
@@ -95,6 +88,9 @@ export default async function PoolHome({
                 </button>
               </form>
             )}
+            <Link href={`/${slug}/organiser`} className="block border-t border-slate-100 px-4 py-3 text-sm text-slate-500 hover:bg-slate-50">
+              🛠️ Organiser sign in
+            </Link>
           </BurgerMenu>
         </header>
       )}
@@ -175,26 +171,27 @@ export default async function PoolHome({
         </section>
       )}
 
-      {/* Organiser sign in (only when not already signed in) */}
-      {!admin && (
-        <footer className="mt-8 border-t border-slate-200 pt-4">
-          <details className="text-sm" open={error === "badpass"}>
-            <summary className="cursor-pointer text-slate-500">Organiser sign in</summary>
-            <div className="mt-3 card">
-              {error === "badpass" && (
-                <p className="mb-3 rounded bg-red-50 px-3 py-2 text-sm text-red-700">
-                  Email or password not recognised — try again.
-                </p>
-              )}
-              <form action={adminLogin.bind(null, slug)} className="space-y-2">
-                <input name="email" type="email" className="input" placeholder="Organiser email" required />
-                <input name="password" type="password" className="input" placeholder="Organiser password" required />
-                <button className="btn-primary w-full">Sign in</button>
-              </form>
-            </div>
-          </details>
-        </footer>
-      )}
+      {/* How scoring works */}
+      <section className="mt-8">
+        <h2 className="mb-2 text-sm font-semibold text-slate-600">ℹ️ How scoring works</h2>
+        <div className="card text-sm text-slate-700">
+          <p className="mb-2 text-slate-500">
+            You earn points as your teams play. Your score is all your teams&apos; points added
+            together.
+          </p>
+          <ul className="space-y-1">
+            <li className="flex justify-between"><span>Win a group game</span><span className="font-semibold">+{cfg.groupWin}</span></li>
+            <li className="flex justify-between"><span>Draw a group game</span><span className="font-semibold">+{cfg.groupDraw}</span></li>
+            <li className="flex justify-between"><span>Each goal your team scores</span><span className="font-semibold">+{cfg.perGoal}</span></li>
+            <li className="flex justify-between"><span>Reach the Round of 32</span><span className="font-semibold">+{cfg.reachR32}</span></li>
+            <li className="flex justify-between"><span>Reach the Round of 16</span><span className="font-semibold">+{cfg.reachR16}</span></li>
+            <li className="flex justify-between"><span>Reach the Quarter-final</span><span className="font-semibold">+{cfg.reachQF}</span></li>
+            <li className="flex justify-between"><span>Reach the Semi-final</span><span className="font-semibold">+{cfg.reachSF}</span></li>
+            <li className="flex justify-between"><span>Reach the Final</span><span className="font-semibold">+{cfg.reachFinal}</span></li>
+            <li className="flex justify-between border-t border-slate-100 pt-1"><span>Win the tournament 🏆</span><span className="font-semibold">+{cfg.champion}</span></li>
+          </ul>
+        </div>
+      </section>
     </main>
   );
 }
