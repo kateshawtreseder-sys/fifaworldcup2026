@@ -6,7 +6,7 @@ import { formatMoney } from "@/lib/format";
 import { inviteUrl } from "@/lib/share";
 import { PoolNav } from "@/components/PoolNav";
 import { CopyButton } from "@/components/CopyButton";
-import { postAnnouncement, deleteAnnouncement, updatePoolSettings } from "../../actions";
+import { postAnnouncement, deleteAnnouncement, updatePoolSettings, adminLogout } from "../../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -153,6 +153,14 @@ export default async function AdminHub({
           </ul>
         </div>
       )}
+
+      <form action={adminLogout.bind(null, slug)} className="mt-6 border-t border-slate-200 pt-4">
+        <button className="btn-secondary">🚪 Log out of organiser mode</button>
+        <p className="mt-2 text-xs text-slate-500">
+          Switches this device back to the normal player view. (Organiser mode is per-device — it
+          doesn&apos;t affect anyone else.)
+        </p>
+      </form>
     </main>
   );
 }
