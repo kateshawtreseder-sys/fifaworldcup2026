@@ -99,6 +99,7 @@ export async function adminLogin(slug: string, formData: FormData) {
     redirect(`/${slug}/organiser?error=badpass`);
   }
   await grantAdmin(slug, pool.id);
+  await clearParticipant(slug); // this device is now the organiser, not a player
   redirect(`/${slug}`);
 }
 
@@ -127,6 +128,7 @@ export async function joinPool(inviteToken: string, formData: FormData) {
   if (existing) {
     if (existing.passwordHash && (await checkPassword(password, existing.passwordHash))) {
       await setParticipant(pool.slug, existing.joinToken);
+      await revokeAdmin(pool.slug); // logging in as a player turns off organiser mode here
       redirect(`/${pool.slug}`);
     }
     redirect(`/join/${inviteToken}?error=exists`);
@@ -137,6 +139,7 @@ export async function joinPool(inviteToken: string, formData: FormData) {
   });
 
   await setParticipant(pool.slug, participant.joinToken);
+  await revokeAdmin(pool.slug);
   redirect(`/${pool.slug}`);
 }
 
@@ -153,6 +156,7 @@ export async function participantLogin(slug: string, formData: FormData) {
     redirect(`/${slug}/login?error=bad`);
   }
   await setParticipant(slug, p.joinToken);
+  await revokeAdmin(slug); // logging in as a player turns off organiser mode here
   redirect(`/${slug}`);
 }
 
