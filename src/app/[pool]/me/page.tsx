@@ -5,7 +5,6 @@ import { getPoolContext, getCurrentParticipant } from "@/lib/loaders";
 import { buildLeaderboard, parseScoring } from "@/lib/scoring";
 import { formatMoney, externalUrl } from "@/lib/format";
 import { maybeAutoSync } from "@/lib/football-data";
-import { PoolNav } from "@/components/PoolNav";
 import { Announcements } from "@/components/Announcements";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { claimPaid, participantLogout } from "../../actions";
@@ -18,14 +17,21 @@ export default async function MePage({
   params: Promise<{ pool: string }>;
 }) {
   const { pool: slug } = await params;
-  const { pool, admin } = await getPoolContext(slug);
+  const { pool } = await getPoolContext(slug);
   after(() => maybeAutoSync());
   const me = await getCurrentParticipant(slug, pool.id);
 
   if (!me) {
     return (
       <main>
-        <PoolNav slug={slug} name={pool.name} isAdmin={admin} />
+        <header className="mb-3 flex items-center justify-between gap-2 border-b border-slate-200 pb-3">
+        <Link href={`/${slug}`} className="min-w-0 truncate text-base font-extrabold brand-gradient">
+          ⚽ {pool.name}
+        </Link>
+        <Link href={`/${slug}`} className="btn-secondary shrink-0">
+          ← Back
+        </Link>
+      </header>
         <div className="card text-center">
           <p className="text-sm text-slate-600">
             You&apos;re not logged in on this device.
@@ -67,7 +73,14 @@ export default async function MePage({
 
   return (
     <main>
-      <PoolNav slug={slug} name={pool.name} isAdmin={admin} />
+      <header className="mb-3 flex items-center justify-between gap-2 border-b border-slate-200 pb-3">
+        <Link href={`/${slug}`} className="min-w-0 truncate text-base font-extrabold brand-gradient">
+          ⚽ {pool.name}
+        </Link>
+        <Link href={`/${slug}`} className="btn-secondary shrink-0">
+          ← Back
+        </Link>
+      </header>
       <AutoRefresh seconds={60} />
       <Announcements items={announcements} />
 
