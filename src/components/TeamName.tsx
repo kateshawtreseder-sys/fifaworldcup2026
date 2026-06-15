@@ -30,7 +30,7 @@ export function TeamName({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="underline decoration-dotted decoration-slate-300 underline-offset-2"
+        className="underline decoration-dotted decoration-slate-400 underline-offset-2"
       >
         {flag} {name ?? "TBC"}
       </button>

@@ -60,7 +60,7 @@ export default async function AllTeamsPage({
           {standings.map((s, i) => (
             <li key={s.participantId}>
               <details
-                className={`overflow-hidden rounded-xl border bg-white shadow-sm ${
+                className={`rounded-xl border bg-white shadow-sm ${
                   me?.id === s.participantId ? "border-pitch-600 ring-1 ring-pitch-600" : "border-slate-200"
                 }`}
               >
