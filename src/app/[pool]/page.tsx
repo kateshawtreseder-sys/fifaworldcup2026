@@ -9,6 +9,7 @@ import { PoolNav } from "@/components/PoolNav";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { Announcements } from "@/components/Announcements";
 import { BurgerMenu } from "@/components/BurgerMenu";
+import { Tabs } from "@/components/Tabs";
 import { LeaderboardView, type PlayerRow } from "@/components/LeaderboardView";
 import { claimPaid, participantLogout } from "../actions";
 
@@ -19,6 +20,13 @@ const resultDateFmt = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
   month: "short",
   timeZone: "Europe/London",
+});
+
+const kickoffTimeFmt = new Intl.DateTimeFormat("en-GB", {
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "Europe/London",
+  timeZoneName: "short",
 });
 
 export default async function PoolHome({
@@ -69,14 +77,26 @@ export default async function PoolHome({
   // grouped under a date heading so it's clear when each result happened.
   const finishedSorted = matches
     .filter((m) => m.status === "finished")
-    .sort((a, b) => +(b.kickoff ?? b.updatedAt) - +(a.kickoff ?? a.updatedAt))
-    .slice(0, 12);
+    .sort((a, b) => +(b.kickoff ?? b.updatedAt) - +(a.kickoff ?? a.updatedAt));
   const resultGroups: { date: string; items: typeof finishedSorted }[] = [];
   for (const mm of finishedSorted) {
     const date = resultDateFmt.format(mm.kickoff ?? mm.updatedAt);
     const g = resultGroups.find((x) => x.date === date);
     if (g) g.items.push(mm);
     else resultGroups.push({ date, items: [mm] });
+  }
+
+  // Upcoming (not yet played) matches with a known kick-off, soonest first,
+  // grouped by day.
+  const upcomingSorted = matches
+    .filter((m) => m.status !== "finished" && m.kickoff)
+    .sort((a, b) => +a.kickoff! - +b.kickoff!);
+  const upcomingGroups: { date: string; items: typeof upcomingSorted }[] = [];
+  for (const mm of upcomingSorted) {
+    const date = resultDateFmt.format(mm.kickoff!);
+    const g = upcomingGroups.find((x) => x.date === date);
+    if (g) g.items.push(mm);
+    else upcomingGroups.push({ date, items: [mm] });
   }
 
   return (
@@ -166,29 +186,80 @@ export default async function PoolHome({
         </div>
       )}
 
-      {/* Latest results, grouped by the day they were played */}
-      {resultGroups.length > 0 && (
-        <section className="mt-6 space-y-4">
-          {resultGroups.map((group) => (
-            <div key={group.date}>
-              <h2 className="mb-2 text-sm font-semibold text-slate-600">Results · {group.date}</h2>
-              <ul className="space-y-1 text-sm">
-                {group.items.map((m) => (
-                  <li key={m.id} className="flex justify-between rounded bg-white px-3 py-2 shadow-sm">
-                    <span>
-                      {teamById.get(m.homeTeamId ?? "")?.flagEmoji}{" "}
-                      {teamById.get(m.homeTeamId ?? "")?.name} {m.homeScore}–{m.awayScore}{" "}
-                      {teamById.get(m.awayTeamId ?? "")?.name}{" "}
-                      {teamById.get(m.awayTeamId ?? "")?.flagEmoji}
-                    </span>
-                    <span className="text-xs text-slate-400">{STAGE_LABELS[m.stage] ?? m.stage}</span>
-                  </li>
+      {/* Results / Upcoming tabs */}
+      <section className="mt-6">
+        <Tabs
+          labels={["Results", "Upcoming"]}
+          panels={[
+            resultGroups.length > 0 ? (
+              <div className="space-y-2">
+                {resultGroups.map((group, i) => (
+                  <details
+                    key={group.date}
+                    open={i === 0}
+                    className="overflow-hidden rounded-lg border border-slate-200 bg-white"
+                  >
+                    <summary className="flex cursor-pointer items-center justify-between px-3 py-2 text-sm font-semibold text-slate-600">
+                      <span>{group.date}</span>
+                      <span className="text-xs font-normal text-slate-400">
+                        {group.items.length} game{group.items.length === 1 ? "" : "s"}
+                      </span>
+                    </summary>
+                    <ul className="space-y-1 border-t border-slate-100 px-3 py-2 text-sm">
+                      {group.items.map((m) => (
+                        <li key={m.id} className="flex justify-between gap-2">
+                          <span>
+                            {teamById.get(m.homeTeamId ?? "")?.flagEmoji}{" "}
+                            {teamById.get(m.homeTeamId ?? "")?.name} {m.homeScore}–{m.awayScore}{" "}
+                            {teamById.get(m.awayTeamId ?? "")?.name}{" "}
+                            {teamById.get(m.awayTeamId ?? "")?.flagEmoji}
+                          </span>
+                          <span className="shrink-0 text-xs text-slate-400">
+                            {STAGE_LABELS[m.stage] ?? m.stage}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
                 ))}
-              </ul>
-            </div>
-          ))}
-        </section>
-      )}
+              </div>
+            ) : (
+              <p className="card text-center text-sm text-slate-500">No results yet.</p>
+            ),
+            upcomingGroups.length > 0 ? (
+              <div className="space-y-4">
+                {upcomingGroups.map((group) => (
+                  <div key={group.date}>
+                    <h3 className="mb-2 text-sm font-semibold text-slate-600">{group.date}</h3>
+                    <ul className="space-y-1 text-sm">
+                      {group.items.map((m) => (
+                        <li
+                          key={m.id}
+                          className="flex items-center justify-between gap-2 rounded bg-white px-3 py-2 shadow-sm"
+                        >
+                          <span>
+                            {teamById.get(m.homeTeamId ?? "")?.flagEmoji}{" "}
+                            {teamById.get(m.homeTeamId ?? "")?.name} v{" "}
+                            {teamById.get(m.awayTeamId ?? "")?.name}{" "}
+                            {teamById.get(m.awayTeamId ?? "")?.flagEmoji}
+                          </span>
+                          <span className="shrink-0 text-xs text-slate-500">
+                            {kickoffTimeFmt.format(m.kickoff!)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="card text-center text-sm text-slate-500">
+                No upcoming games scheduled yet.
+              </p>
+            ),
+          ]}
+        />
+      </section>
 
       {/* How scoring works */}
       <section className="mt-8">
