@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getPoolContext } from "@/lib/loaders";
 import { STAGE_LABELS } from "@/lib/format";
 import { PoolNav } from "@/components/PoolNav";
-import { saveResult, createKnockoutMatch, syncNow, loadTeams } from "../../../actions";
+import { saveResult, createKnockoutMatch, syncNow, loadTeams, loadFixtureDates } from "../../../actions";
 
 const STAGE_ORDER = ["group", "R32", "R16", "QF", "SF", "final"];
 
@@ -12,10 +12,10 @@ export default async function ResultsPage({
   searchParams,
 }: {
   params: Promise<{ pool: string }>;
-  searchParams: Promise<{ error?: string; sync?: string; c?: string; u?: string; s?: string; m?: string }>;
+  searchParams: Promise<{ error?: string; sync?: string; c?: string; u?: string; s?: string; m?: string; dates?: string }>;
 }) {
   const { pool: slug } = await params;
-  const { error, sync, c, u, s, m } = await searchParams;
+  const { error, sync, c, u, s, m, dates } = await searchParams;
   const { pool, admin } = await getPoolContext(slug);
   if (!admin) redirect(`/${slug}`);
 
@@ -57,6 +57,25 @@ export default async function ResultsPage({
           </button>
         </form>
       </div>
+
+      {teams.length > 0 && (
+        <div className="card mb-4">
+          <p className="text-sm font-medium">📅 Fixture dates &amp; times</p>
+          <p className="mt-1 text-xs text-slate-500">
+            Fill in the official group-stage kick-off times so they show on players&apos; teams.
+            Safe to run any time — it doesn&apos;t change teams, the draw or any scores.
+          </p>
+          <form action={loadFixtureDates.bind(null, slug)} className="mt-3">
+            <button className="btn-secondary">📅 Load fixture dates &amp; times</button>
+          </form>
+        </div>
+      )}
+
+      {dates !== undefined && (
+        <div className="card mb-4 border-pitch-200 bg-pitch-50 text-sm text-pitch-800">
+          ✅ Loaded kick-off times for {dates} group fixtures.
+        </div>
+      )}
 
       {error === "teams" && (
         <div className="card mb-4 border-red-200 bg-red-50 text-sm text-red-700">

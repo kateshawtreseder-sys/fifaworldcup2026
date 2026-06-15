@@ -19,7 +19,7 @@ import { DEFAULT_SCORING } from "@/lib/scoring";
 import { runDraw, newSeed } from "@/lib/draw";
 import { TEAM_POT } from "../../prisma/data/teams";
 import { syncFromFootballData } from "@/lib/football-data";
-import { seedTeamsAndFixtures } from "@/lib/seed";
+import { seedTeamsAndFixtures, importFixtureDates } from "@/lib/seed";
 
 function token(bytes = 9): string {
   return crypto.randomBytes(bytes).toString("base64url");
@@ -283,6 +283,16 @@ export async function createKnockoutMatch(slug: string, formData: FormData) {
     data: { stage, homeTeamId, awayTeamId, status: "scheduled" },
   });
   revalidatePath(`/${slug}/admin/results`);
+}
+
+// Non-destructive: fill in official group-stage kick-off dates/times on the
+// existing fixtures (keeps the draw, scores and assignments intact).
+export async function loadFixtureDates(slug: string) {
+  await requireAdmin(slug);
+  const r = await importFixtureDates(prisma);
+  revalidatePath(`/${slug}/admin/results`);
+  revalidatePath(`/${slug}/me`);
+  redirect(`/${slug}/admin/results?dates=${r.updated}`);
 }
 
 // Loads (or replaces) the 48 teams + group fixtures in the database.

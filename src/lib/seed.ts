@@ -4,6 +4,7 @@
 
 import { PrismaClient } from "@prisma/client";
 import { SEED_TEAMS } from "../../prisma/data/teams";
+import { GROUP_FIXTURES } from "../../prisma/data/fixtures";
 
 // Round-robin pairings for a group of 4 (indices 0..3): 6 matches.
 const GROUP_PAIRINGS: [number, number][] = [
@@ -50,6 +51,7 @@ export async function seedTeamsAndFixtures(prisma: PrismaClient) {
           homeTeamId: list[i].id,
           awayTeamId: list[j].id,
           status: "scheduled",
+          kickoff: KICKOFF_BY_PAIR.get([list[i].fifaCode, list[j].fifaCode].sort().join("-")) ?? null,
         },
       });
       fixtures++;
@@ -57,4 +59,35 @@ export async function seedTeamsAndFixtures(prisma: PrismaClient) {
   }
 
   return { teams: teams.length, fixtures };
+}
+
+// Pair (sorted fifaCodes) → kick-off, from the official group-stage schedule.
+const KICKOFF_BY_PAIR = new Map<string, Date>(
+  GROUP_FIXTURES.map((f) => [[f.home, f.away].sort().join("-"), new Date(f.kickoff)])
+);
+
+// Non-destructive: set kick-off times on existing group fixtures from the
+// official schedule. Does NOT touch teams, the draw, scores or assignments —
+// safe to run mid-tournament.
+export async function importFixtureDates(prisma: PrismaClient) {
+  const teams = await prisma.team.findMany();
+  const idByCode = new Map(teams.map((t) => [t.fifaCode, t.id]));
+  let updated = 0;
+  for (const f of GROUP_FIXTURES) {
+    const home = idByCode.get(f.home);
+    const away = idByCode.get(f.away);
+    if (!home || !away) continue;
+    const res = await prisma.match.updateMany({
+      where: {
+        stage: "group",
+        OR: [
+          { homeTeamId: home, awayTeamId: away },
+          { homeTeamId: away, awayTeamId: home },
+        ],
+      },
+      data: { kickoff: new Date(f.kickoff), groupName: f.group },
+    });
+    updated += res.count;
+  }
+  return { updated };
 }
