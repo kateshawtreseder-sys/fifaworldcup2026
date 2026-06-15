@@ -84,7 +84,7 @@ export function TeamFixtures({
                         className="flex items-center justify-between gap-2 rounded bg-slate-50 px-3 py-2"
                       >
                         <div className="min-w-0">
-                          <p className="truncate">
+                          <p>
                             <span className="text-xs text-slate-400">
                               {STAGE_LABELS[m.stage] ?? m.stage} ·{" "}
                             </span>
