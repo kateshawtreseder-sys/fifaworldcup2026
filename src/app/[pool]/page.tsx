@@ -65,12 +65,19 @@ export default async function PoolHome({
   const drawn = pool.status !== "open";
   const stake = formatMoney(pool.stakeAmount, pool.currency);
 
-  // Most-recently-updated finished matches, shown under the leaderboard.
-  const recent = matches
+  // Finished matches, newest first by the day they were PLAYED (kick-off),
+  // grouped under a date heading so it's clear when each result happened.
+  const finishedSorted = matches
     .filter((m) => m.status === "finished")
-    .sort((a, b) => +b.updatedAt - +a.updatedAt)
-    .slice(0, 8);
-  const latestResultDate = recent[0] ? recent[0].kickoff ?? recent[0].updatedAt : null;
+    .sort((a, b) => +(b.kickoff ?? b.updatedAt) - +(a.kickoff ?? a.updatedAt))
+    .slice(0, 12);
+  const resultGroups: { date: string; items: typeof finishedSorted }[] = [];
+  for (const mm of finishedSorted) {
+    const date = resultDateFmt.format(mm.kickoff ?? mm.updatedAt);
+    const g = resultGroups.find((x) => x.date === date);
+    if (g) g.items.push(mm);
+    else resultGroups.push({ date, items: [mm] });
+  }
 
   return (
     <main>
@@ -159,25 +166,27 @@ export default async function PoolHome({
         </div>
       )}
 
-      {/* Latest results — so it's clear why the leaderboard moved */}
-      {recent.length > 0 && (
-        <section className="mt-6">
-          <h2 className="mb-2 text-sm font-semibold text-slate-600">
-            Latest results{latestResultDate ? ` · from ${resultDateFmt.format(latestResultDate)}` : ""}
-          </h2>
-          <ul className="space-y-1 text-sm">
-            {recent.map((m) => (
-              <li key={m.id} className="flex justify-between rounded bg-white px-3 py-2 shadow-sm">
-                <span>
-                  {teamById.get(m.homeTeamId ?? "")?.flagEmoji}{" "}
-                  {teamById.get(m.homeTeamId ?? "")?.name} {m.homeScore}–{m.awayScore}{" "}
-                  {teamById.get(m.awayTeamId ?? "")?.name}{" "}
-                  {teamById.get(m.awayTeamId ?? "")?.flagEmoji}
-                </span>
-                <span className="text-xs text-slate-400">{STAGE_LABELS[m.stage] ?? m.stage}</span>
-              </li>
-            ))}
-          </ul>
+      {/* Latest results, grouped by the day they were played */}
+      {resultGroups.length > 0 && (
+        <section className="mt-6 space-y-4">
+          {resultGroups.map((group) => (
+            <div key={group.date}>
+              <h2 className="mb-2 text-sm font-semibold text-slate-600">Results · {group.date}</h2>
+              <ul className="space-y-1 text-sm">
+                {group.items.map((m) => (
+                  <li key={m.id} className="flex justify-between rounded bg-white px-3 py-2 shadow-sm">
+                    <span>
+                      {teamById.get(m.homeTeamId ?? "")?.flagEmoji}{" "}
+                      {teamById.get(m.homeTeamId ?? "")?.name} {m.homeScore}–{m.awayScore}{" "}
+                      {teamById.get(m.awayTeamId ?? "")?.name}{" "}
+                      {teamById.get(m.awayTeamId ?? "")?.flagEmoji}
+                    </span>
+                    <span className="text-xs text-slate-400">{STAGE_LABELS[m.stage] ?? m.stage}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </section>
       )}
 
