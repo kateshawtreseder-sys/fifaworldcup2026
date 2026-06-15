@@ -11,7 +11,7 @@ import { Announcements } from "@/components/Announcements";
 import { BurgerMenu } from "@/components/BurgerMenu";
 import { Tabs } from "@/components/Tabs";
 import { LeaderboardView, type PlayerRow } from "@/components/LeaderboardView";
-import { claimPaid, participantLogout } from "../actions";
+import { claimPaid } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -116,13 +116,6 @@ export default async function PoolHome({
             <Link href={`/${slug}/all-teams`} className="block border-t border-slate-100 px-4 py-3 text-sm hover:bg-slate-50">
               👥 All teams
             </Link>
-            {me && (
-              <form action={participantLogout.bind(null, slug)} className="border-t border-slate-100">
-                <button className="block w-full px-4 py-3 text-left text-sm hover:bg-slate-50">
-                  🚪 Log out
-                </button>
-              </form>
-            )}
             <Link href={`/${slug}/organiser`} className="block border-t border-slate-100 px-4 py-3 text-sm text-slate-500 hover:bg-slate-50">
               🛠️ Organiser sign in
             </Link>
