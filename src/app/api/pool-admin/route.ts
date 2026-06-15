@@ -32,6 +32,17 @@ export async function GET(request: Request) {
   }
   if (!pool) return NextResponse.json({ error: "no pool found" }, { status: 404 });
 
+  // Delete a pool (requires explicit &slug= so it can't hit the wrong one).
+  // Cascades to its participants/assignments/announcements; shared teams/matches
+  // are untouched.
+  if (url.searchParams.get("delete") === "confirm") {
+    if (!slug) {
+      return NextResponse.json({ error: "delete requires an explicit &slug=" }, { status: 400 });
+    }
+    await prisma.pool.delete({ where: { id: pool.id } });
+    return NextResponse.json({ ok: true, deleted: pool.slug });
+  }
+
   const setStatus = url.searchParams.get("status");
   if (setStatus && STATUSES.includes(setStatus)) {
     await prisma.pool.update({ where: { id: pool.id }, data: { status: setStatus } });
