@@ -37,11 +37,11 @@ export default async function AllTeamsPage({
 
   return (
     <main>
-      <header className="mb-6 flex items-center justify-between border-b border-slate-200 pb-4">
-        <Link href={`/${slug}`} className="text-xl font-extrabold brand-gradient">
+      <header className="mb-3 flex items-center justify-between gap-2 border-b border-slate-200 pb-3">
+        <Link href={`/${slug}`} className="min-w-0 truncate text-base font-extrabold brand-gradient">
           ⚽ {pool.name}
         </Link>
-        <Link href={`/${slug}`} className="btn-secondary">
+        <Link href={`/${slug}`} className="btn-secondary shrink-0">
           ← Back
         </Link>
       </header>
