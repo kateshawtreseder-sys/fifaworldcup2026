@@ -1,6 +1,23 @@
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 import { createPool } from "./actions";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  // Once a sweepstake exists, the root URL (and any home-screen icon pointing at
+  // it) sends people straight to it — never to the "create" form. The create
+  // form only shows on a brand-new install with no pools yet.
+  const pools = await prisma.pool.findMany({
+    include: { _count: { select: { participants: true } } },
+  });
+  if (pools.length > 0) {
+    const best = [...pools].sort(
+      (a, b) => b._count.participants - a._count.participants || +b.createdAt - +a.createdAt
+    )[0];
+    redirect(`/${best.slug}`);
+  }
+
   return (
     <main className="space-y-6">
       <header>
