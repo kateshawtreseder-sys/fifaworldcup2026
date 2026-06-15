@@ -63,45 +63,26 @@ export function LeaderboardView({ rows, compact = false }: { rows: PlayerRow[]; 
         </div>
       )}
 
-      {/* Full list */}
-      <ol className="space-y-2">
-        {rows.map((r, i) =>
-          compact ? (
-            <CompactRow key={r.participantId} row={r} rank={i + 1} gap={leader.points - r.points} />
-          ) : (
+      {/* Full list (skipped in compact/home mode — see All teams for everyone) */}
+      {!compact && (
+        <ol className="space-y-2">
+          {rows.map((r, i) => (
             <Row key={r.participantId} row={r} rank={i + 1} gap={leader.points - r.points} />
-          )
-        )}
-      </ol>
-    </div>
-  );
-}
+          ))}
+        </ol>
+      )}
 
-// Ranking-only row (name + points) — used on the home page. Full team detail
-// lives on the All teams page.
-function CompactRow({ row, rank, gap }: { row: PlayerRow; rank: number; gap: number }) {
-  return (
-    <li
-      className={`card flex items-center justify-between gap-3 py-3 ${
-        row.isMe ? "ring-2 ring-pitch-600" : ""
-      }`}
-    >
-      <div className="flex items-center gap-3">
-        <span className="w-7 text-center text-lg font-bold text-slate-500">
-          {rank <= 3 ? MEDALS[rank - 1] : rank}
-        </span>
-        <div>
-          <p className="font-semibold">
-            {row.name}
-            {row.isMe && <span className="ml-2 text-xs text-pitch-700">(you)</span>}
-          </p>
-          {rank > 1 && gap > 0 && (
-            <p className="text-xs text-slate-400">{gap} behind leader</p>
-          )}
+      {/* Compact with too few players for a podium: show the leader simply. */}
+      {compact && rows.length < 2 && (
+        <div className="card flex items-center justify-between">
+          <span className="font-semibold">
+            🥇 {leader.name}
+            {leader.isMe && <span className="ml-2 text-xs text-pitch-700">(you)</span>}
+          </span>
+          <span className="text-xl font-bold text-pitch-800">{leader.points} pts</span>
         </div>
-      </div>
-      <span className="text-xl font-bold text-pitch-800">{row.points}</span>
-    </li>
+      )}
+    </div>
   );
 }
 

@@ -10,8 +10,8 @@ export function PoolNav({
   isAdmin: boolean;
 }) {
   return (
-    <header className="mb-6 border-b border-slate-200 pb-4">
-      <Link href={`/${slug}`} className="text-xl font-extrabold brand-gradient">
+    <header className="mb-3 border-b border-slate-200 pb-3">
+      <Link href={`/${slug}`} className="text-base font-extrabold brand-gradient">
         ⚽ {name}
       </Link>
       {isAdmin && (

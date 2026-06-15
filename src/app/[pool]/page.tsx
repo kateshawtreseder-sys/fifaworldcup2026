@@ -77,8 +77,8 @@ export default async function PoolHome({
       {admin ? (
         <PoolNav slug={slug} name={pool.name} isAdmin />
       ) : (
-        <header className="mb-6 flex items-center justify-between border-b border-slate-200 pb-4">
-          <Link href={`/${slug}`} className="text-xl font-extrabold brand-gradient">
+        <header className="mb-3 flex items-center justify-between gap-2 border-b border-slate-200 pb-3">
+          <Link href={`/${slug}`} className="min-w-0 truncate text-base font-extrabold brand-gradient">
             ⚽ {pool.name}
           </Link>
           <BurgerMenu>
@@ -146,7 +146,7 @@ export default async function PoolHome({
 
       {/* Leaderboard */}
       <h1 className="mb-1 text-xl font-bold">🏆 Leaderboard</h1>
-      <p className="mb-4 text-xs text-slate-500">See everyone&apos;s teams on the All teams page.</p>
+      <p className="mb-3 text-xs text-slate-500">See everyone&apos;s teams on the All teams page.</p>
       {drawn ? (
         <LeaderboardView rows={rows} compact />
       ) : (
