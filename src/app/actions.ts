@@ -102,7 +102,6 @@ export async function adminLogin(slug: string, formData: FormData) {
     redirect(`/${slug}/organiser?error=badpass`);
   }
   await grantAdmin(slug, pool.id);
-  await clearParticipant(slug); // this device is now the organiser, not a player
   redirect(`/${slug}`);
 }
 
