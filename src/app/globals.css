@@ -6,6 +6,13 @@
   color-scheme: light;
 }
 
+html {
+  /* Paint the viewport canvas dark so there's no white flash on the very
+     first frame, before <body> is laid out (color-scheme: light defaults it
+     to white otherwise). Matches the Splash / iOS startup-image background. */
+  background-color: #070b16;
+}
+
 body {
   @apply text-slate-900 antialiased;
   background-color: #070b16; /* fallback behind the wallpaper */

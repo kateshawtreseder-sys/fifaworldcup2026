@@ -2,6 +2,22 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Splash } from "@/components/Splash";
 
+// iOS ignores the manifest `background_color`, so an installed PWA shows a white
+// launch frame unless we supply an exact-size startup image per device. These
+// solid #070b16 PNGs (regenerate via `node scripts/gen-ios-splash.mjs`) match
+// the <Splash> overlay so the native launch blends into the in-app splash.
+// [cssWidth, cssHeight, dpr] — keep in sync with DEVICES in the script.
+const IOS_SPLASH_DEVICES: [number, number, number][] = [
+  [320, 568, 2], [375, 667, 2], [414, 736, 3], [375, 812, 3],
+  [414, 896, 2], [414, 896, 3], [390, 844, 3], [428, 926, 3],
+  [393, 852, 3], [430, 932, 3], [402, 874, 3], [440, 956, 3],
+];
+
+const startupImage = IOS_SPLASH_DEVICES.map(([w, h, dpr]) => ({
+  url: `/splash/splash-${w * dpr}x${h * dpr}.png`,
+  media: `screen and (device-width: ${w}px) and (device-height: ${h}px) and (-webkit-device-pixel-ratio: ${dpr}) and (orientation: portrait)`,
+}));
+
 export const metadata: Metadata = {
   title: "World Cup 2026 Sweepstake",
   description: "A family sweepstake for the FIFA World Cup 2026 — join, pay, get your teams, follow the live leaderboard.",
@@ -10,6 +26,7 @@ export const metadata: Metadata = {
     capable: true,
     title: "WC Sweepstake",
     statusBarStyle: "black-translucent",
+    startupImage,
   },
   icons: {
     icon: "/icon.svg",
