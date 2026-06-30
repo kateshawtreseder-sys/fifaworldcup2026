@@ -223,7 +223,7 @@ export default async function PoolHome({
                                 />
                                 <span className="font-medium">
                                   {m.homeScore}–{m.awayScore}
-                                  {bd.tag && <span className="ml-1 text-xs font-normal text-slate-400">({bd.tag})</span>}
+                                  {bd.tag && <span className="ml-1 text-xs font-normal text-slate-600">({bd.tag})</span>}
                                 </span>
                                 <TeamName
                                   flag={teamById.get(m.awayTeamId ?? "")?.flagEmoji}
@@ -236,13 +236,13 @@ export default async function PoolHome({
                               </span>
                             </div>
                             {(bd.ninety || bd.pens || bd.eliminatedTeamId) && (
-                              <p className="text-xs text-slate-400">
+                              <p className="text-xs text-slate-600">
                                 {bd.ninety && <span>90&apos; {bd.ninety.home}–{bd.ninety.away}</span>}
                                 {bd.pens && <span>{bd.ninety ? " · " : ""}pens {bd.pens.home}–{bd.pens.away}</span>}
                                 {isFinal && winnerName ? (
-                                  <span className="ml-1 font-medium text-pitch-700">· 🏆 {winnerName} champions</span>
+                                  <span className="ml-1 font-semibold text-pitch-800">· 🏆 {winnerName} champions</span>
                                 ) : outName ? (
-                                  <span className="ml-1 font-medium text-slate-500">· {outName} knocked out</span>
+                                  <span className="ml-1 font-semibold text-slate-700">· {outName} knocked out</span>
                                 ) : null}
                               </p>
                             )}
