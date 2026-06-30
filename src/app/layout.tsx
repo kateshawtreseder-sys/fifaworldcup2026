@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { Splash } from "@/components/Splash";
 
 export const metadata: Metadata = {
   title: "World Cup 2026 Sweepstake",
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {/* Full-screen wallpaper. Drop a public/wallpaper.jpg in to override the
             default SVG — if it isn't there, the SVG below shows through. */}
+        <Splash />
         <div
           className="flex min-h-screen w-full justify-end bg-cover bg-fixed bg-center"
           style={{ backgroundImage: "url('/wallpaper.jpg'), url('/wallpaper.svg')" }}
