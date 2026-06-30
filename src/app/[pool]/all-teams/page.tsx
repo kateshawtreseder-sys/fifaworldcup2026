@@ -11,10 +11,13 @@ export const dynamic = "force-dynamic";
 
 export default async function AllTeamsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ pool: string }>;
+  searchParams: Promise<{ player?: string }>;
 }) {
   const { pool: slug } = await params;
+  const { player } = await searchParams;
   const { pool } = await getPoolContext(slug);
   after(() => maybeAutoSync());
   const me = await getCurrentParticipant(slug, pool.id);
@@ -58,11 +61,12 @@ export default async function AllTeamsPage({
       ) : (
         <ol className="space-y-2">
           {standings.map((s, i) => (
-            <li key={s.participantId}>
+            <li key={s.participantId} id={`player-${s.participantId}`} className="scroll-mt-4">
               <details
+                open={player === s.participantId}
                 className={`rounded-xl border bg-white shadow-sm ${
                   me?.id === s.participantId ? "border-pitch-600 ring-1 ring-pitch-600" : "border-slate-200"
-                }`}
+                } ${player === s.participantId ? "ring-2 ring-pitch-500" : ""}`}
               >
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 [&::-webkit-details-marker]:hidden">
                   <div className="flex min-w-0 items-center gap-2">

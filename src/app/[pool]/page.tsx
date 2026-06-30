@@ -3,7 +3,7 @@ import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getPoolContext, getCurrentParticipant } from "@/lib/loaders";
 import { formatMoney, externalUrl, furthestStageLabel, matchBreakdown, STAGE_LABELS } from "@/lib/format";
-import { buildLeaderboard, parseScoring } from "@/lib/scoring";
+import { buildLeaderboard, mostRecentDelta, parseScoring } from "@/lib/scoring";
 import { maybeAutoSync } from "@/lib/football-data";
 import { PoolNav } from "@/components/PoolNav";
 import { AutoRefresh } from "@/components/AutoRefresh";
@@ -56,24 +56,34 @@ export default async function PoolHome({
   const ownerByTeam = new Map<string, string>();
   for (const a of assignments) ownerByTeam.set(a.teamId, nameById.get(a.participantId) ?? "");
 
+  const matchLabel = (m: { homeTeamId: string | null; awayTeamId: string | null; homeScore: number | null; awayScore: number | null }) =>
+    `${teamById.get(m.homeTeamId ?? "")?.name ?? "?"} ${m.homeScore}–${m.awayScore} ${teamById.get(m.awayTeamId ?? "")?.name ?? "?"}`;
+
   const standings = buildLeaderboard({ participants, assignments, matches, cfg });
-  const rows: PlayerRow[] = standings.map((s) => ({
-    participantId: s.participantId,
-    name: s.name,
-    points: s.points,
-    isMe: me?.id === s.participantId,
-    teams: s.teams.map((t) => {
-      const team = teamById.get(t.teamId);
-      return {
-        name: team?.name ?? "?",
-        flag: team?.flagEmoji ?? "",
-        points: t.points,
-        champion: t.champion,
-        eliminated: t.eliminated,
-        reached: furthestStageLabel(t.reachedStages),
-      };
-    }),
-  }));
+  const rows: PlayerRow[] = standings.map((s) => {
+    const teamIds = new Set(s.teams.map((t) => t.teamId));
+    const d = mostRecentDelta(teamIds, matches, cfg);
+    return {
+      participantId: s.participantId,
+      name: s.name,
+      points: s.points,
+      isMe: me?.id === s.participantId,
+      recent: d
+        ? { pts: d.pts, flag: teamById.get(d.teamId)?.flagEmoji ?? "", label: matchLabel(d.match) }
+        : null,
+      teams: s.teams.map((t) => {
+        const team = teamById.get(t.teamId);
+        return {
+          name: team?.name ?? "?",
+          flag: team?.flagEmoji ?? "",
+          points: t.points,
+          champion: t.champion,
+          eliminated: t.eliminated,
+          reached: furthestStageLabel(t.reachedStages),
+        };
+      }),
+    };
+  });
 
   const drawn = pool.status !== "open";
   const stake = formatMoney(pool.stakeAmount, pool.currency);
@@ -177,7 +187,7 @@ export default async function PoolHome({
       <h1 className="mb-1 text-xl font-bold">🏆 Leaderboard</h1>
       <p className="mb-3 text-xs text-slate-600">See everyone&apos;s teams on the All teams page.</p>
       {drawn ? (
-        <LeaderboardView rows={rows} compact />
+        <LeaderboardView rows={rows} compact slug={slug} />
       ) : (
         <div className="card text-center text-sm text-slate-600">
           The teams haven&apos;t been drawn yet. Scores appear here once the organiser runs the draw.

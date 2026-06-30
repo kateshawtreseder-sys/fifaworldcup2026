@@ -171,6 +171,40 @@ export function pointsForTeamInMatch(teamId: string, m: ScoringMatch, cfg: Scori
   return pts;
 }
 
+// Points a participant earned from their most-recently-played finished match —
+// the "what just moved them" delta shown on the podium. Returns null if none of
+// their teams have a finished match yet, or the gain was zero.
+export type RecentMatch = ScoringMatch & {
+  id: string;
+  kickoff: Date | null;
+  updatedAt: Date;
+};
+export function mostRecentDelta(
+  teamIds: Set<string>,
+  matches: RecentMatch[],
+  cfg: ScoringConfig
+): { pts: number; teamId: string; match: RecentMatch } | null {
+  let best: RecentMatch | null = null;
+  for (const m of matches) {
+    if (m.status !== "finished") continue;
+    if (!teamIds.has(m.homeTeamId ?? "") && !teamIds.has(m.awayTeamId ?? "")) continue;
+    if (!best || +(m.kickoff ?? m.updatedAt) > +(best.kickoff ?? best.updatedAt)) best = m;
+  }
+  if (!best) return null;
+
+  // Sum across the participant's teams in that match (usually one, but they may
+  // own both sides), so the badge reflects their full gain from that game.
+  let pts = 0;
+  let teamId = "";
+  for (const tid of teamIds) {
+    if (best.homeTeamId === tid || best.awayTeamId === tid) {
+      pts += pointsForTeamInMatch(tid, best, cfg);
+      teamId = tid;
+    }
+  }
+  return pts > 0 ? { pts, teamId, match: best } : null;
+}
+
 export type ParticipantStanding = {
   participantId: string;
   name: string;

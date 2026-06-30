@@ -40,8 +40,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>
+    // Inline dark background (not just in globals.css) so the very first paint —
+    // before the stylesheet loads — is dark, closing the white flash between the
+    // iOS startup image dismissing and the page's HTML/CSS painting.
+    <html lang="en" style={{ backgroundColor: "#070b16" }}>
+      <body style={{ backgroundColor: "#070b16" }}>
         {/* Full-screen wallpaper. Drop a public/wallpaper.jpg in to override the
             default SVG — if it isn't there, the SVG below shows through. */}
         <Splash />

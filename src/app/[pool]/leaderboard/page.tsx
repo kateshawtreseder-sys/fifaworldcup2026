@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getPoolContext, getCurrentParticipant } from "@/lib/loaders";
-import { buildLeaderboard, parseScoring } from "@/lib/scoring";
+import { buildLeaderboard, mostRecentDelta, parseScoring } from "@/lib/scoring";
 import { STAGE_LABELS } from "@/lib/format";
 import { maybeAutoSync } from "@/lib/football-data";
 import { PoolNav } from "@/components/PoolNav";
@@ -55,23 +55,34 @@ export default async function LeaderboardPage({
     cfg: parseScoring(pool.scoringConfig),
   });
 
-  const rows: PlayerRow[] = standings.map((s) => ({
-    participantId: s.participantId,
-    name: s.name,
-    points: s.points,
-    isMe: me?.id === s.participantId,
-    teams: s.teams.map((t) => {
-      const team = teamById.get(t.teamId);
-      return {
-        name: team?.name ?? "?",
-        flag: team?.flagEmoji ?? "",
-        points: t.points,
-        champion: t.champion,
-        eliminated: t.eliminated,
-        reached: furthestStage(t.reachedStages),
-      };
-    }),
-  }));
+  const cfg = parseScoring(pool.scoringConfig);
+  const matchLabel = (m: { homeTeamId: string | null; awayTeamId: string | null; homeScore: number | null; awayScore: number | null }) =>
+    `${teamById.get(m.homeTeamId ?? "")?.name ?? "?"} ${m.homeScore}–${m.awayScore} ${teamById.get(m.awayTeamId ?? "")?.name ?? "?"}`;
+
+  const rows: PlayerRow[] = standings.map((s) => {
+    const teamIds = new Set(s.teams.map((t) => t.teamId));
+    const d = mostRecentDelta(teamIds, matches, cfg);
+    return {
+      participantId: s.participantId,
+      name: s.name,
+      points: s.points,
+      isMe: me?.id === s.participantId,
+      recent: d
+        ? { pts: d.pts, flag: teamById.get(d.teamId)?.flagEmoji ?? "", label: matchLabel(d.match) }
+        : null,
+      teams: s.teams.map((t) => {
+        const team = teamById.get(t.teamId);
+        return {
+          name: team?.name ?? "?",
+          flag: team?.flagEmoji ?? "",
+          points: t.points,
+          champion: t.champion,
+          eliminated: t.eliminated,
+          reached: furthestStage(t.reachedStages),
+        };
+      }),
+    };
+  });
 
   const drawn = pool.status !== "open";
 
@@ -95,7 +106,7 @@ export default async function LeaderboardPage({
           appear here and update as matches are played.
         </div>
       ) : (
-        <LeaderboardView rows={rows} />
+        <LeaderboardView rows={rows} slug={slug} />
       )}
 
       {recent.length > 0 && (

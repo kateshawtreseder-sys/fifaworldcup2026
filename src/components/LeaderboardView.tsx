@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 export type TeamRow = {
   name: string;
@@ -17,11 +18,21 @@ export type PlayerRow = {
   points: number;
   isMe: boolean;
   teams: TeamRow[];
+  // Points from this player's most-recently-played match (null if none / zero).
+  recent?: { pts: number; flag: string; label: string } | null;
 };
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
-export function LeaderboardView({ rows, compact = false }: { rows: PlayerRow[]; compact?: boolean }) {
+export function LeaderboardView({
+  rows,
+  compact = false,
+  slug,
+}: {
+  rows: PlayerRow[];
+  compact?: boolean;
+  slug: string;
+}) {
   if (rows.length === 0) {
     return (
       <div className="card text-center text-sm text-slate-600">No players yet.</div>
@@ -42,12 +53,25 @@ export function LeaderboardView({ rows, compact = false }: { rows: PlayerRow[]; 
             const heights = ["h-20", "h-28", "h-16"]; // 2nd, 1st, 3rd
             const order = idx === 0 ? 1 : idx === 1 ? 0 : 2;
             return (
-              <div key={r.participantId} className="flex flex-col items-center">
+              <Link
+                key={r.participantId}
+                href={`/${slug}/all-teams?player=${r.participantId}#player-${r.participantId}`}
+                aria-label={`See ${r.name}'s teams`}
+                className="group flex flex-col items-center rounded-lg p-1 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-pitch-600"
+              >
                 <div className="mb-1 text-2xl">{MEDALS[idx]}</div>
-                <div className="max-w-full truncate text-center text-sm font-semibold">
+                <div className="max-w-full truncate text-center text-sm font-semibold group-hover:underline">
                   {r.name}
                 </div>
                 <div className="text-xs text-slate-600">{r.points} pts</div>
+                {r.recent && (
+                  <div
+                    title={`Latest: ${r.recent.label}`}
+                    className="mt-0.5 rounded-full bg-pitch-100 px-1.5 text-[10px] font-semibold text-pitch-800"
+                  >
+                    {r.recent.flag} +{r.recent.pts}
+                  </div>
+                )}
                 <div
                   className={`mt-1 w-full rounded-t-lg ${heights[order]} ${
                     idx === 0
@@ -55,9 +79,9 @@ export function LeaderboardView({ rows, compact = false }: { rows: PlayerRow[]; 
                       : idx === 1
                         ? "bg-slate-300"
                         : "bg-amber-600/70"
-                  } ${r.isMe ? "ring-2 ring-pitch-600" : ""}`}
+                  } ${r.isMe ? "ring-2 ring-pitch-600" : ""} transition group-hover:brightness-95`}
                 />
-              </div>
+              </Link>
             );
           })}
         </div>
