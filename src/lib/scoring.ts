@@ -76,6 +76,9 @@ export function pointsForTeam(
   const reachedStages = new Set<string>();
   let champion = false;
   let eliminated = false;
+  let inKnockout = false; // team appears in any knockout match
+  let groupTotal = 0; // group matches this team has
+  let groupFinished = 0; // ...of which are finished
 
   for (const m of matches) {
     const isHome = m.homeTeamId === teamId;
@@ -83,7 +86,14 @@ export function pointsForTeam(
     if (!isHome && !isAway) continue;
 
     // Appearing in a knockout match means the team reached that round.
-    if (m.stage in STAGE_BONUS) reachedStages.add(m.stage);
+    if (m.stage in STAGE_BONUS) {
+      reachedStages.add(m.stage);
+      inKnockout = true;
+    }
+    if (m.stage === "group") {
+      groupTotal++;
+      if (m.status === "finished") groupFinished++;
+    }
 
     if (m.status !== "finished") continue;
 
@@ -114,6 +124,15 @@ export function pointsForTeam(
     points += cfg[STAGE_BONUS[stage]];
   }
   if (champion) points += cfg.champion;
+
+  // Group-stage elimination: once the knockout stage exists (the R32 field is
+  // set), a team that played its group games but reached no knockout match
+  // didn't qualify — it's out. (Guarded on the knockout stage having started so
+  // teams aren't marked out mid-group-stage.)
+  const knockoutStarted = matches.some((m) => m.stage in STAGE_BONUS);
+  if (!inKnockout && knockoutStarted && groupTotal > 0 && groupFinished === groupTotal) {
+    eliminated = true;
+  }
 
   return {
     teamId,
