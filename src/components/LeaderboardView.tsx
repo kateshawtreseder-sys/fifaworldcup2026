@@ -24,7 +24,7 @@ const MEDALS = ["🥇", "🥈", "🥉"];
 export function LeaderboardView({ rows, compact = false }: { rows: PlayerRow[]; compact?: boolean }) {
   if (rows.length === 0) {
     return (
-      <div className="card text-center text-sm text-slate-500">No players yet.</div>
+      <div className="card text-center text-sm text-slate-600">No players yet.</div>
     );
   }
 
@@ -47,7 +47,7 @@ export function LeaderboardView({ rows, compact = false }: { rows: PlayerRow[]; 
                 <div className="max-w-full truncate text-center text-sm font-semibold">
                   {r.name}
                 </div>
-                <div className="text-xs text-slate-500">{r.points} pts</div>
+                <div className="text-xs text-slate-600">{r.points} pts</div>
                 <div
                   className={`mt-1 w-full rounded-t-lg ${heights[order]} ${
                     idx === 0
@@ -97,7 +97,7 @@ function Row({ row, rank, gap }: { row: PlayerRow; rank: number; gap: number }) 
         className="flex w-full items-center justify-between gap-3 p-4 text-left hover:bg-slate-50"
       >
         <div className="flex items-center gap-3">
-          <span className="w-7 text-center text-lg font-bold text-slate-500">
+          <span className="w-7 text-center text-lg font-bold text-slate-600">
             {rank <= 3 ? MEDALS[rank - 1] : rank}
           </span>
           <div>
@@ -105,10 +105,10 @@ function Row({ row, rank, gap }: { row: PlayerRow; rank: number; gap: number }) 
               {row.name}
               {row.isMe && <span className="ml-2 text-xs text-pitch-700">(you)</span>}
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-600">
               {row.teams.map((t) => t.flag).join(" ")}
             </p>
-            <p className="mt-0.5 text-xs text-slate-400">
+            <p className="mt-0.5 text-xs text-slate-600">
               {alive}/{row.teams.length} teams still in
               {rank > 1 && gap > 0 && ` · ${gap} behind leader`}
             </p>
@@ -116,7 +116,7 @@ function Row({ row, rank, gap }: { row: PlayerRow; rank: number; gap: number }) 
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xl font-bold text-pitch-800">{row.points}</span>
-          <span className="text-slate-400">{open ? "▲" : "▼"}</span>
+          <span className="text-slate-600">{open ? "▲" : "▼"}</span>
         </div>
       </button>
 
@@ -129,7 +129,7 @@ function Row({ row, rank, gap }: { row: PlayerRow; rank: number; gap: number }) 
                 <li
                   key={t.name}
                   className={`flex items-center justify-between text-sm ${
-                    t.eliminated ? "text-slate-400 line-through" : ""
+                    t.eliminated ? "text-slate-600 line-through" : ""
                   }`}
                 >
                   <span>

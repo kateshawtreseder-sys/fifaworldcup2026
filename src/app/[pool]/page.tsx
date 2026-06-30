@@ -121,7 +121,7 @@ export default async function PoolHome({
             <Link href={`/${slug}/all-teams`} className="block border-t border-slate-100 px-4 py-3 text-sm hover:bg-slate-50">
               👥 All teams
             </Link>
-            <Link href={`/${slug}/organiser`} className="block border-t border-slate-100 px-4 py-3 text-sm text-slate-500 hover:bg-slate-50">
+            <Link href={`/${slug}/organiser`} className="block border-t border-slate-100 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50">
               🛠️ Organiser sign in
             </Link>
           </BurgerMenu>
@@ -175,11 +175,11 @@ export default async function PoolHome({
 
       {/* Leaderboard */}
       <h1 className="mb-1 text-xl font-bold">🏆 Leaderboard</h1>
-      <p className="mb-3 text-xs text-slate-500">See everyone&apos;s teams on the All teams page.</p>
+      <p className="mb-3 text-xs text-slate-600">See everyone&apos;s teams on the All teams page.</p>
       {drawn ? (
         <LeaderboardView rows={rows} compact />
       ) : (
-        <div className="card text-center text-sm text-slate-500">
+        <div className="card text-center text-sm text-slate-600">
           The teams haven&apos;t been drawn yet. Scores appear here once the organiser runs the draw.
         </div>
       )}
@@ -202,7 +202,7 @@ export default async function PoolHome({
                         <span className="chevron text-lg font-bold text-pitch-700">▶</span>
                         {group.date}
                       </span>
-                      <span className="text-xs font-normal text-slate-400">
+                      <span className="text-xs font-normal text-slate-600">
                         {group.items.length} game{group.items.length === 1 ? "" : "s"}
                       </span>
                     </summary>
@@ -231,7 +231,7 @@ export default async function PoolHome({
                                   owner={ownerByTeam.get(m.awayTeamId ?? "")}
                                 />
                               </span>
-                              <span className="shrink-0 text-xs text-slate-400">
+                              <span className="shrink-0 text-xs text-slate-600">
                                 {STAGE_LABELS[m.stage] ?? m.stage}
                               </span>
                             </div>
@@ -254,7 +254,7 @@ export default async function PoolHome({
                 ))}
               </div>
             ) : (
-              <p className="card text-center text-sm text-slate-500">No results yet.</p>
+              <p className="card text-center text-sm text-slate-600">No results yet.</p>
             ),
             upcomingGroups.length > 0 ? (
               <div className="space-y-4">
@@ -280,7 +280,7 @@ export default async function PoolHome({
                               owner={ownerByTeam.get(m.awayTeamId ?? "")}
                             />
                           </span>
-                          <span className="shrink-0 text-xs text-slate-500">
+                          <span className="shrink-0 text-xs text-slate-600">
                             {kickoffTimeFmt.format(m.kickoff!)}
                           </span>
                         </li>
@@ -290,7 +290,7 @@ export default async function PoolHome({
                 ))}
               </div>
             ) : (
-              <p className="card text-center text-sm text-slate-500">
+              <p className="card text-center text-sm text-slate-600">
                 No upcoming games scheduled yet.
               </p>
             ),
@@ -302,7 +302,7 @@ export default async function PoolHome({
       <section className="mt-8">
         <h2 className="mb-2 text-sm font-semibold text-slate-600">ℹ️ How scoring works</h2>
         <div className="card text-sm text-slate-700">
-          <p className="mb-2 text-slate-500">
+          <p className="mb-2 text-slate-600">
             You earn points as your teams play. Your score is all your teams&apos; points added
             together.
           </p>

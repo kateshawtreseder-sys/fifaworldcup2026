@@ -26,7 +26,7 @@ export default async function OrganiserLoginPage({
       </header>
 
       <div className="card">
-        <p className="mb-3 text-sm text-slate-500">
+        <p className="mb-3 text-sm text-slate-600">
           Sign in with your organiser email and password to manage payments, run the draw, and enter
           results.
         </p>
@@ -43,7 +43,7 @@ export default async function OrganiserLoginPage({
       </div>
 
       <p className="text-center text-sm">
-        <Link href={`/${slug}`} className="text-slate-500 underline">
+        <Link href={`/${slug}`} className="text-slate-600 underline">
           ← Back to the sweepstake
         </Link>
       </p>

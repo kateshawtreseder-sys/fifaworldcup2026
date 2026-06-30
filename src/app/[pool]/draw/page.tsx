@@ -56,7 +56,7 @@ export default async function DrawPage({
               <span className="font-medium">Split:</span>{" "}
               {describeSplit(teamCount, participants.length)}
             </p>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-slate-600">
               {paidCount} of {participants.length} have paid. You can still draw with unpaid
               players — chase them up on the Players page.
             </p>
@@ -85,7 +85,7 @@ export default async function DrawPage({
               Teams were shared out using a fair, reproducible random seed.
             </p>
             {pool.drawSeed && (
-              <p className="mt-1 text-xs text-slate-400">Draw seed: {pool.drawSeed}</p>
+              <p className="mt-1 text-xs text-slate-600">Draw seed: {pool.drawSeed}</p>
             )}
           </div>
           {[...byParticipant.values()]
@@ -93,7 +93,7 @@ export default async function DrawPage({
             .map((p) => (
               <div key={p.name} className="card">
                 <p className="font-semibold">
-                  {p.name} <span className="text-xs text-slate-500">({p.teams.length} teams)</span>
+                  {p.name} <span className="text-xs text-slate-600">({p.teams.length} teams)</span>
                 </p>
                 <p className="mt-1 text-sm text-slate-700">{p.teams.join(" · ")}</p>
               </div>

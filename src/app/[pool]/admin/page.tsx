@@ -119,7 +119,7 @@ export default async function AdminHub({
               placeholder="you@example.com"
               className="input"
             />
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-slate-600">
               This is the one email that gets organiser access (with your password). Change it to
               hand organiser duties to a different email.
             </p>
@@ -130,7 +130,7 @@ export default async function AdminHub({
 
       <div className="card mb-4">
         <h2 className="mb-1 font-semibold">📣 Send an announcement</h2>
-        <p className="mb-3 text-xs text-slate-500">
+        <p className="mb-3 text-xs text-slate-600">
           Everyone sees this at the top of the leaderboard. It appears for them within a minute (the
           pages refresh themselves).
         </p>
@@ -155,7 +155,7 @@ export default async function AdminHub({
               <li key={a.id} className="flex items-start justify-between gap-3 rounded bg-slate-50 px-3 py-2">
                 <div>
                   <p className="whitespace-pre-wrap text-sm">{a.message}</p>
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs text-slate-600">
                     {new Date(a.createdAt).toLocaleString("en-GB")}
                   </p>
                 </div>
@@ -170,7 +170,7 @@ export default async function AdminHub({
 
       <form action={adminLogout.bind(null, slug)} className="mt-6 border-t border-slate-200 pt-4">
         <button className="btn-secondary">🚪 Log out of organiser mode</button>
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-slate-600">
           Switches this device back to the normal player view. (Organiser mode is per-device — it
           doesn&apos;t affect anyone else.)
         </p>
@@ -182,7 +182,7 @@ export default async function AdminHub({
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-slate-50 p-3">
-      <p className="text-xs text-slate-500">{label}</p>
+      <p className="text-xs text-slate-600">{label}</p>
       <p className="text-lg font-bold">{value}</p>
     </div>
   );

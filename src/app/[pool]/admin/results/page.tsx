@@ -68,7 +68,7 @@ export default async function ResultsPage({
       {teams.length > 0 && (
         <div className="card mb-4">
           <p className="text-sm font-medium">📅 Fixture dates &amp; times</p>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-slate-600">
             Fill in the official group-stage kick-off times so they show on players&apos; teams.
             Safe to run any time — it doesn&apos;t change teams, the draw or any scores.
           </p>
@@ -108,7 +108,7 @@ export default async function ResultsPage({
       <div className="card mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold">Results</h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-600">
             Enter scores by hand, or sync from football-data.org. Saved scores are
             treated as final and won&apos;t be overwritten by a later sync.
           </p>
@@ -182,7 +182,7 @@ export default async function ResultsPage({
                     {m.homeTeam?.flagEmoji} {m.homeTeam?.name} {m.homeScore}–{m.awayScore}{" "}
                     {m.awayTeam?.name} {m.awayTeam?.flagEmoji}
                   </span>
-                  <span className="text-xs text-slate-400">{STAGE_LABELS[m.stage] ?? m.stage}</span>
+                  <span className="text-xs text-slate-600">{STAGE_LABELS[m.stage] ?? m.stage}</span>
                 </summary>
                 <div className="mt-2 border-t border-slate-100 pt-2">
                   <EditRow m={m} slug={slug} />

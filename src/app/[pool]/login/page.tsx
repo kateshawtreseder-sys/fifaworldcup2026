@@ -50,7 +50,7 @@ export default async function ParticipantLoginPage({
           <button className="btn-primary w-full">Log in →</button>
         </form>
         {pool.status === "open" && (
-          <p className="mt-3 text-center text-sm text-slate-500">
+          <p className="mt-3 text-center text-sm text-slate-600">
             Not joined yet?{" "}
             <Link href={`/join/${pool.inviteToken}`} className="font-semibold text-pitch-700 underline">
               Create an account

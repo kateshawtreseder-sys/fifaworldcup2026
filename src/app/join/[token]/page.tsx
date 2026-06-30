@@ -35,7 +35,7 @@ export default async function JoinPage({
       </header>
 
       <div className="card text-center">
-        <p className="text-sm text-slate-500">Stake to play</p>
+        <p className="text-sm text-slate-600">Stake to play</p>
         <p className="text-3xl font-bold text-pitch-800">
           {formatMoney(pool.stakeAmount, pool.currency)}
         </p>
@@ -60,7 +60,7 @@ export default async function JoinPage({
       {open ? (
         <div className="card">
           <h2 className="mb-1 font-semibold">Create your account &amp; join</h2>
-          <p className="mb-3 text-xs text-slate-500">
+          <p className="mb-3 text-xs text-slate-600">
             Your email and password let you log back in any time, on any device.
           </p>
           {error && JOIN_ERRORS[error] && (
@@ -97,7 +97,7 @@ export default async function JoinPage({
             </div>
             <button className="btn-primary w-full">Create account &amp; join →</button>
           </form>
-          <p className="mt-3 text-center text-sm text-slate-500">
+          <p className="mt-3 text-center text-sm text-slate-600">
             Already joined?{" "}
             <Link href={`/${pool.slug}/login`} className="font-semibold text-pitch-700 underline">
               Log in

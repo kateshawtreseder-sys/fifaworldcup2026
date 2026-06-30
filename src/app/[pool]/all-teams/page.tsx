@@ -49,10 +49,10 @@ export default async function AllTeamsPage({
       <AutoRefresh seconds={60} />
 
       <h1 className="mb-1 text-xl font-bold">👥 All teams</h1>
-      <p className="mb-4 text-xs text-slate-500">Tap a player to see their teams, fixtures and points.</p>
+      <p className="mb-4 text-xs text-slate-600">Tap a player to see their teams, fixtures and points.</p>
 
       {!drawn ? (
-        <div className="card text-center text-sm text-slate-500">
+        <div className="card text-center text-sm text-slate-600">
           Teams haven&apos;t been drawn yet — check back once the draw is done.
         </div>
       ) : (
@@ -68,7 +68,7 @@ export default async function AllTeamsPage({
                   <div className="flex min-w-0 items-center gap-2">
                     <span className="chevron text-base font-bold text-pitch-700">▶</span>
                     <span className="font-semibold">
-                      <span className="mr-1 text-slate-400">{i + 1}.</span>
+                      <span className="mr-1 text-slate-600">{i + 1}.</span>
                       {s.name}
                       {me?.id === s.participantId && <span className="ml-2 text-xs text-pitch-700">(you)</span>}
                     </span>

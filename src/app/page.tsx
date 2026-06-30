@@ -60,7 +60,7 @@ export default async function HomePage() {
               placeholder="you@example.com"
               required
             />
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-slate-600">
               You&apos;ll sign in as organiser with this email and password.
             </p>
           </div>
@@ -106,7 +106,7 @@ export default async function HomePage() {
               className="input"
               placeholder="https://monzo.me/yourname or https://paypal.me/yourname"
             />
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-slate-600">
               Where people send their stake. You&apos;ll tick people off as paid.
               Leave blank and add it later.
             </p>
@@ -118,7 +118,7 @@ export default async function HomePage() {
         </form>
       </section>
 
-      <p className="text-center text-xs text-slate-500">
+      <p className="text-center text-xs text-slate-600">
         The organiser password protects the draw, payments and results. Keep it
         safe — anyone with it can manage the pool.
       </p>

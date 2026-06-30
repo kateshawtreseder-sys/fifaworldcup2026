@@ -66,13 +66,13 @@ export function TeamFixtures({
                 <p className="font-semibold">
                   <TeamName flag={team?.flagEmoji} name={team?.name} owner={ownerByTeam.get(bd.teamId)} />
                   {bd.champion && <span className="ml-1">🏆</span>}
-                  {bd.eliminated && <span className="ml-2 text-xs font-normal text-slate-400">out</span>}
+                  {bd.eliminated && <span className="ml-2 text-xs font-normal text-slate-600">out</span>}
                 </p>
                 <span className="text-sm font-bold text-pitch-800">{bd.points} pts</span>
               </div>
 
               {fixtures.length === 0 ? (
-                <p className="text-xs text-slate-400">Fixtures to be confirmed.</p>
+                <p className="text-xs text-slate-600">Fixtures to be confirmed.</p>
               ) : (
                 <ul className="space-y-1 text-sm">
                   {fixtures.map((m) => {
@@ -97,7 +97,7 @@ export function TeamFixtures({
                       >
                         <div className="min-w-0">
                           <p>
-                            <span className="text-xs text-slate-400">
+                            <span className="text-xs text-slate-600">
                               {STAGE_LABELS[m.stage] ?? m.stage} ·{" "}
                             </span>
                             vs{" "}
@@ -108,7 +108,7 @@ export function TeamFixtures({
                             />
                           </p>
                           {!finished && !live && (
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-slate-600">
                               {m.kickoff ? kickoffFmt.format(m.kickoff) : "Date to be confirmed"}
                             </p>
                           )}

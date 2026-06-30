@@ -27,9 +27,9 @@ export default async function ParticipantsPage({
 
       <div className="card mb-4 flex items-center justify-between">
         <div>
-          <p className="text-sm text-slate-500">Collected pot</p>
+          <p className="text-sm text-slate-600">Collected pot</p>
           <p className="text-2xl font-bold text-pitch-800">{formatMoney(pot, pool.currency)}</p>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-600">
             {paidCount} of {participants.length} paid ·{" "}
             {formatMoney(pool.stakeAmount, pool.currency)} each
           </p>
@@ -42,7 +42,7 @@ export default async function ParticipantsPage({
       </div>
 
       {participants.length === 0 ? (
-        <div className="card text-center text-sm text-slate-500">
+        <div className="card text-center text-sm text-slate-600">
           No one has joined yet. Share your invite link to get started.
         </div>
       ) : (
@@ -51,7 +51,7 @@ export default async function ParticipantsPage({
             <li key={p.id} className="card flex items-center justify-between py-3">
               <div>
                 <p className="font-medium">{p.name}</p>
-                {p.email && <p className="text-xs text-slate-500">{p.email}</p>}
+                {p.email && <p className="text-xs text-slate-600">{p.email}</p>}
               </div>
               <div className="flex items-center gap-2">
                 <span

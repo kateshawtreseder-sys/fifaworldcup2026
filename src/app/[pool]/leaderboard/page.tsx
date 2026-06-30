@@ -87,10 +87,10 @@ export default async function LeaderboardPage({
       <Announcements items={announcements} />
 
       <h1 className="mb-1 text-xl font-bold">🏆 Leaderboard</h1>
-      <p className="mb-4 text-xs text-slate-500">Tap a player to see how their teams are doing.</p>
+      <p className="mb-4 text-xs text-slate-600">Tap a player to see how their teams are doing.</p>
 
       {!drawn ? (
-        <div className="card text-center text-sm text-slate-500">
+        <div className="card text-center text-sm text-slate-600">
           The teams haven&apos;t been drawn yet. Once the organiser runs the draw, scores will
           appear here and update as matches are played.
         </div>
@@ -110,7 +110,7 @@ export default async function LeaderboardPage({
                   {teamById.get(m.awayTeamId ?? "")?.name}{" "}
                   {teamById.get(m.awayTeamId ?? "")?.flagEmoji}
                 </span>
-                <span className="text-xs text-slate-400">{STAGE_LABELS[m.stage] ?? m.stage}</span>
+                <span className="text-xs text-slate-600">{STAGE_LABELS[m.stage] ?? m.stage}</span>
               </li>
             ))}
           </ul>

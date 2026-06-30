@@ -89,7 +89,7 @@ export default async function MePage({
         <div className="flex items-start justify-between">
           <h1 className="text-lg font-semibold">Hi {me.name} 👋</h1>
           <form action={participantLogout.bind(null, slug)}>
-            <button className="text-xs text-slate-400 underline">Log out</button>
+            <button className="text-xs text-slate-600 underline">Log out</button>
           </form>
         </div>
 
@@ -131,7 +131,7 @@ export default async function MePage({
               </form>
             </div>
             {pool.paymentLink && (
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-xs text-slate-600">
                 Tap “Pay now” to open the payment link, then tap “I&apos;ve paid” so the organiser
                 can confirm you.
               </p>
@@ -141,14 +141,14 @@ export default async function MePage({
       </div>
 
       {pool.status === "open" ? (
-        <div className="card text-center text-sm text-slate-500">
+        <div className="card text-center text-sm text-slate-600">
           You&apos;re in! Teams will be drawn once everyone has joined. Check back after the draw.
         </div>
       ) : myStanding ? (
         <>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-bold">Your teams</h2>
-            <span className="text-sm text-slate-500">
+            <span className="text-sm text-slate-600">
               Rank #{rank} · {myStanding.points} pts
             </span>
           </div>
