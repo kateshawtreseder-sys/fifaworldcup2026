@@ -98,11 +98,17 @@ model Match {
   homeTeam     Team?    @relation("HomeTeam", fields: [homeTeamId], references: [id])
   awayTeamId   String?
   awayTeam     Team?    @relation("AwayTeam", fields: [awayTeamId], references: [id])
-  homeScore    Int?
+  homeScore    Int? // full-time score AFTER extra time, EXCLUDING penalties (football-data `fullTime`)
   awayScore    Int?
+  // Knockout breakdown (nullable; only set for matches that go beyond 90'):
+  duration     String? // REGULAR | EXTRA_TIME | PENALTY_SHOOTOUT (football-data `score.duration`)
+  homeScore90  Int? // score after 90 minutes (football-data `regularTime`)
+  awayScore90  Int?
+  homePens     Int? // penalty-shootout goals only (football-data `penalties`)
+  awayPens     Int?
   status       String   @default("scheduled") // scheduled | live | finished
   kickoff      DateTime?
-  winnerTeamId String?
+  winnerTeamId String? // accounts for ET + penalties (loser of a finished knockout is eliminated)
   winnerTeam   Team?    @relation("WinnerTeam", fields: [winnerTeamId], references: [id])
   manualEdit   Boolean  @default(false) // if true, API sync will not overwrite the score
   updatedAt    DateTime @updatedAt

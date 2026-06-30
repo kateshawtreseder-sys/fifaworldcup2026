@@ -2,7 +2,7 @@ import Link from "next/link";
 import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getPoolContext, getCurrentParticipant } from "@/lib/loaders";
-import { formatMoney, externalUrl, furthestStageLabel, STAGE_LABELS } from "@/lib/format";
+import { formatMoney, externalUrl, furthestStageLabel, matchBreakdown, STAGE_LABELS } from "@/lib/format";
 import { buildLeaderboard, parseScoring } from "@/lib/scoring";
 import { maybeAutoSync } from "@/lib/football-data";
 import { PoolNav } from "@/components/PoolNav";
@@ -207,26 +207,48 @@ export default async function PoolHome({
                       </span>
                     </summary>
                     <ul className="space-y-1 border-t border-slate-100 px-3 py-2 text-sm">
-                      {group.items.map((m) => (
-                        <li key={m.id} className="flex justify-between gap-2">
-                          <span className="flex flex-wrap items-center gap-x-1">
-                            <TeamName
-                              flag={teamById.get(m.homeTeamId ?? "")?.flagEmoji}
-                              name={teamById.get(m.homeTeamId ?? "")?.name}
-                              owner={ownerByTeam.get(m.homeTeamId ?? "")}
-                            />
-                            <span className="font-medium">{m.homeScore}–{m.awayScore}</span>
-                            <TeamName
-                              flag={teamById.get(m.awayTeamId ?? "")?.flagEmoji}
-                              name={teamById.get(m.awayTeamId ?? "")?.name}
-                              owner={ownerByTeam.get(m.awayTeamId ?? "")}
-                            />
-                          </span>
-                          <span className="shrink-0 text-xs text-slate-400">
-                            {STAGE_LABELS[m.stage] ?? m.stage}
-                          </span>
-                        </li>
-                      ))}
+                      {group.items.map((m) => {
+                        const bd = matchBreakdown(m);
+                        const isFinal = m.stage === "final";
+                        const winnerName = teamById.get(m.winnerTeamId ?? "")?.name;
+                        const outName = teamById.get(bd.eliminatedTeamId ?? "")?.name;
+                        return (
+                          <li key={m.id} className="flex flex-col gap-0.5">
+                            <div className="flex justify-between gap-2">
+                              <span className="flex flex-wrap items-center gap-x-1">
+                                <TeamName
+                                  flag={teamById.get(m.homeTeamId ?? "")?.flagEmoji}
+                                  name={teamById.get(m.homeTeamId ?? "")?.name}
+                                  owner={ownerByTeam.get(m.homeTeamId ?? "")}
+                                />
+                                <span className="font-medium">
+                                  {m.homeScore}–{m.awayScore}
+                                  {bd.tag && <span className="ml-1 text-xs font-normal text-slate-400">({bd.tag})</span>}
+                                </span>
+                                <TeamName
+                                  flag={teamById.get(m.awayTeamId ?? "")?.flagEmoji}
+                                  name={teamById.get(m.awayTeamId ?? "")?.name}
+                                  owner={ownerByTeam.get(m.awayTeamId ?? "")}
+                                />
+                              </span>
+                              <span className="shrink-0 text-xs text-slate-400">
+                                {STAGE_LABELS[m.stage] ?? m.stage}
+                              </span>
+                            </div>
+                            {(bd.ninety || bd.pens || bd.eliminatedTeamId) && (
+                              <p className="text-xs text-slate-400">
+                                {bd.ninety && <span>90&apos; {bd.ninety.home}–{bd.ninety.away}</span>}
+                                {bd.pens && <span>{bd.ninety ? " · " : ""}pens {bd.pens.home}–{bd.pens.away}</span>}
+                                {isFinal && winnerName ? (
+                                  <span className="ml-1 font-medium text-pitch-700">· 🏆 {winnerName} champions</span>
+                                ) : outName ? (
+                                  <span className="ml-1 font-medium text-slate-500">· {outName} knocked out</span>
+                                ) : null}
+                              </p>
+                            )}
+                          </li>
+                        );
+                      })}
                     </ul>
                   </details>
                 ))}

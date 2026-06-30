@@ -36,9 +36,20 @@ type FDMatch = {
   awayTeam: { tla?: string | null; name?: string | null };
   score: {
     winner?: "HOME_TEAM" | "AWAY_TEAM" | "DRAW" | null;
+    // `duration` flags whether the match went to extra time / penalties. The
+    // optional `regularTime` (90') and `penalties` nodes appear once relevant.
+    // `fullTime` is the score after extra time but EXCLUDING penalties.
+    duration?: "REGULAR" | "EXTRA_TIME" | "PENALTY_SHOOTOUT" | null;
     fullTime: { home: number | null; away: number | null };
+    regularTime?: { home: number | null; away: number | null } | null;
+    penalties?: { home: number | null; away: number | null } | null;
   };
 };
+
+// Orient a home/away pair to an existing row's stored orientation.
+function orient<T>(home: T, away: T, swap: boolean): [T, T] {
+  return swap ? [away, home] : [home, away];
+}
 
 export type SyncResult = {
   ok: boolean;
@@ -96,6 +107,13 @@ export async function syncFromFootballData(): Promise<SyncResult> {
     const status = mapStatus(m.status);
     const homeScore = m.score.fullTime.home;
     const awayScore = m.score.fullTime.away;
+    const duration = m.score.duration ?? "REGULAR";
+    // 90-minute score: use the API's regularTime when present; for matches that
+    // ended in regular time, fullTime already IS the 90' score.
+    const homeScore90 = m.score.regularTime?.home ?? (duration === "REGULAR" ? homeScore : null);
+    const awayScore90 = m.score.regularTime?.away ?? (duration === "REGULAR" ? awayScore : null);
+    const homePens = m.score.penalties?.home ?? null;
+    const awayPens = m.score.penalties?.away ?? null;
     let winnerTeamId: string | null = null;
     if (m.score.winner === "HOME_TEAM") winnerTeamId = home.id;
     else if (m.score.winner === "AWAY_TEAM") winnerTeamId = away.id;
@@ -116,13 +134,24 @@ export async function syncFromFootballData(): Promise<SyncResult> {
         skipped++;
         continue;
       }
+      // The stored row may have the team pair in the opposite orientation to
+      // the API; swap every home/away pair to match how it's stored.
+      const swap = existing.homeTeamId !== home.id;
+      const [hScore, aScore] = orient(homeScore, awayScore, swap);
+      const [h90, a90] = orient(homeScore90, awayScore90, swap);
+      const [hPens, aPens] = orient(homePens, awayPens, swap);
       await prisma.match.update({
         where: { id: existing.id },
         data: {
           externalId: existing.externalId ?? `fd-${m.id}`,
           status,
-          homeScore: existing.homeTeamId === home.id ? homeScore : awayScore,
-          awayScore: existing.homeTeamId === home.id ? awayScore : homeScore,
+          homeScore: hScore,
+          awayScore: aScore,
+          duration,
+          homeScore90: h90,
+          awayScore90: a90,
+          homePens: hPens,
+          awayPens: aPens,
           winnerTeamId,
           kickoff: m.utcDate ? new Date(m.utcDate) : existing.kickoff,
         },
@@ -138,6 +167,11 @@ export async function syncFromFootballData(): Promise<SyncResult> {
           awayTeamId: away.id,
           homeScore,
           awayScore,
+          duration,
+          homeScore90,
+          awayScore90,
+          homePens,
+          awayPens,
           status,
           winnerTeamId,
           kickoff: m.utcDate ? new Date(m.utcDate) : null,

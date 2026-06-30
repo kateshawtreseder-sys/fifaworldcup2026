@@ -1,4 +1,4 @@
-import { STAGE_LABELS } from "@/lib/format";
+import { STAGE_LABELS, matchBreakdown } from "@/lib/format";
 import { pointsForTeamInMatch, type TeamBreakdown, type ScoringConfig } from "@/lib/scoring";
 import { TeamName } from "@/components/TeamName";
 
@@ -22,6 +22,11 @@ type MatchLite = {
   awayTeamId: string | null;
   homeScore: number | null;
   awayScore: number | null;
+  duration: string | null;
+  homeScore90: number | null;
+  awayScore90: number | null;
+  homePens: number | null;
+  awayPens: number | null;
   winnerTeamId: string | null;
   kickoff: Date | null;
 };
@@ -78,6 +83,13 @@ export function TeamFixtures({
                     const scored = isHome ? m.homeScore : m.awayScore;
                     const conceded = isHome ? m.awayScore : m.homeScore;
                     const mpts = pointsForTeamInMatch(bd.teamId, m, cfg);
+                    // Knockout breakdown, oriented to this team's scored–conceded.
+                    const det = matchBreakdown(m);
+                    const facing = (p: { home: number; away: number } | null) =>
+                      p ? { s: isHome ? p.home : p.away, c: isHome ? p.away : p.home } : null;
+                    const ninety = facing(det.ninety);
+                    const pens = facing(det.pens);
+                    const knockedOutHere = det.eliminatedTeamId === bd.teamId;
                     return (
                       <li
                         key={m.id}
@@ -100,11 +112,19 @@ export function TeamFixtures({
                               {m.kickoff ? kickoffFmt.format(m.kickoff) : "Date to be confirmed"}
                             </p>
                           )}
+                          {finished && (ninety || pens || knockedOutHere) && (
+                            <p className="text-xs text-slate-400">
+                              {ninety && <span>90&apos; {ninety.s}–{ninety.c}</span>}
+                              {pens && <span>{ninety ? " · " : ""}pens {pens.s}–{pens.c}</span>}
+                              {knockedOutHere && <span className="ml-1 font-medium text-slate-500">· knocked out</span>}
+                            </p>
+                          )}
                         </div>
                         <div className="shrink-0 text-right">
                           {finished || live ? (
                             <p className="font-semibold">
                               {scored}–{conceded}
+                              {det.tag && <span className="ml-1 text-xs font-normal text-slate-400">({det.tag})</span>}
                               {live && <span className="ml-1 text-xs text-red-600">LIVE</span>}
                             </p>
                           ) : null}
